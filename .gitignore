@@ -1,0 +1,11 @@
+# 先忽略所有文件
+*
+# 但不忽略目录本身
+!*/
+# 白名单：放行你要提交的文件夹
+!/Assets
+!/Packages
+!/ProjectSettings
+
+# 放行 .gitignore 文件本身，让 Git 读到它
+!/.gitignore
