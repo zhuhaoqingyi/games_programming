@@ -1,11 +1,28 @@
-# 先忽略所有文件
-*
-# 但不忽略目录本身
-!*/
-# 白名单：放行你要提交的文件夹
-!/Assets
-!/Packages
-!/ProjectSettings
+# Unity 项目忽略规则
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Uu]ser[Ss]ettings/
 
-# 放行 .gitignore 文件本身，让 Git 读到它
-!/.gitignore
+# IDE 和编辑器
+.vs/
+.vscode/
+*.sln
+*.csproj
+*.suo
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# 其他
+.vsconfig
+!.gitignore
