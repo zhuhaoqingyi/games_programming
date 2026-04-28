@@ -1,16 +1,18 @@
 using UnityEngine;
 using GameCore;
 using PowerSystem;
+using GameResources;
 
 namespace ProductionSystem
 {
     public class MiningBuilding : GridSystem.BuildingComponent
     {
-        [SerializeField] private float miningInterval = 3f;
-        [SerializeField] private ResourceType minedResource = ResourceType.SpaceOre;
-        [SerializeField] private int miningAmount = 1;
+        [Header("采矿设置")]
+        public int collectionRange = 2;
+        public float collectionInterval = 2f;
+        public ResourceType minedResource = ResourceType.SpaceOre;
         
-        private float timer = 0f;
+        private float timer;
         private PowerConsumer powerConsumer;
 
         protected override void Awake()
@@ -21,15 +23,14 @@ namespace ProductionSystem
 
         protected override void OnUpdate(float deltaTime)
         {
-            if (CanMine())
+            if (!CanMine()) return;
+            
+            timer += deltaTime;
+            
+            if (timer >= collectionInterval)
             {
-                timer += deltaTime;
-                
-                if (timer >= miningInterval)
-                {
-                    timer = 0f;
-                    MineResource();
-                }
+                timer = 0;
+                CollectResourcesInRange();
             }
         }
 
@@ -43,24 +44,33 @@ namespace ProductionSystem
             return CanWork();
         }
 
-        private void MineResource()
+        private void CollectResourcesInRange()
         {
-            GameManager.Instance?.AddResource(minedResource, miningAmount);
+            Collider2D[] hitColliders = Physics2D.OverlapBoxAll(
+                transform.position,
+                new Vector2(collectionRange, collectionRange),
+                0f
+            );
+            
+            foreach (Collider2D collider in hitColliders)
+            {
+                SpaceOre ore = collider.GetComponent<SpaceOre>();
+                if (ore != null && !ore.IsCollected())
+                {
+                    ore.Collect();
+                }
+            }
         }
 
-        public float GetMiningProgress()
+        public int GetCollectionRange()
         {
-            return (timer / miningInterval) * 100f;
+            return collectionRange;
         }
 
-        public ResourceType GetMinedResource()
+        private void OnDrawGizmosSelected()
         {
-            return minedResource;
-        }
-
-        public void SetMinedResource(ResourceType type)
-        {
-            minedResource = type;
+            Gizmos.color = new Color(0, 1, 0, 0.3f);
+            Gizmos.DrawCube(transform.position, new Vector3(collectionRange, collectionRange, 0.1f));
         }
     }
 }
