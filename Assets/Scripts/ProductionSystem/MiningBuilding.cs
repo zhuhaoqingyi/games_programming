@@ -1,31 +1,24 @@
 using UnityEngine;
-using GameCore;
-using PowerSystem;
-using GameResources;
 
 namespace ProductionSystem
 {
-    public class MiningBuilding : GridSystem.BuildingComponent
+    public class MiningBuilding : MonoBehaviour
     {
         [Header("采矿设置")]
         public int collectionRange = 2;
         public float collectionInterval = 2f;
-        public ResourceType minedResource = ResourceType.SpaceOre;
-        
-        private float timer;
-        private PowerConsumer powerConsumer;
 
-        protected override void Awake()
+        private float timer;
+
+        protected virtual void Awake()
         {
-            base.Awake();
-            powerConsumer = GetComponent<PowerConsumer>();
         }
 
-        protected override void OnUpdate(float deltaTime)
+        protected virtual void Update()
         {
             if (!CanMine()) return;
             
-            timer += deltaTime;
+            timer += Time.deltaTime;
             
             if (timer >= collectionInterval)
             {
@@ -34,9 +27,9 @@ namespace ProductionSystem
             }
         }
 
-        public override bool CanWork()
+        public virtual bool CanWork()
         {
-            return base.CanWork() && powerConsumer != null && powerConsumer.CanWork();
+            return true;
         }
 
         private bool CanMine()

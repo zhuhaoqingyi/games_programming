@@ -1,5 +1,4 @@
 using UnityEngine;
-using GameCore;
 
 namespace GameResources
 {
@@ -11,8 +10,6 @@ namespace GameResources
         public float rotationSpeed = 15f;
         public float bobAmplitude = 0.15f;
         public float bobFrequency = 2f;
-
-        public ResourceType resourceType;
 
         [Header("边界设置")]
         public float destroyDistance = 25f;
@@ -96,7 +93,6 @@ namespace GameResources
         public void Collect()
         {
             isCollected = true;
-            GameManager.Instance?.AddResource(resourceType, 1);
             Destroy(gameObject);
         }
 

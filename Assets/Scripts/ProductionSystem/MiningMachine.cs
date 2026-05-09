@@ -1,17 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
-using GameCore;
-using PowerSystem;
-using GameResources;
 
 namespace ProductionSystem
 {
-    public class MiningMachine : GridSystem.BuildingComponent
+    public class MiningMachine : MonoBehaviour
     {
         [Header("采矿设置")]
         public float miningInterval = 2f;
         public int miningAmount = 1;
-        public ResourceType minedResource = ResourceType.SpaceOre;
 
         [Header("组件引用")]
         public MiningCollector collector;
@@ -23,13 +19,9 @@ namespace ProductionSystem
         public bool enableDebug = true;
 
         private float timer;
-        private PowerConsumer powerConsumer;
 
-        protected override void Awake()
+        protected virtual void Awake()
         {
-            base.Awake();
-            powerConsumer = GetComponent<PowerConsumer>();
-
             if (collector != null)
             {
                 collector.Initialize(this);
@@ -38,7 +30,7 @@ namespace ProductionSystem
             LogDebug("MiningMachine 已初始化");
         }
 
-        protected override void OnUpdate(float deltaTime)
+        protected virtual void Update()
         {
             if (!CanWork())
             {
@@ -46,7 +38,7 @@ namespace ProductionSystem
                 return;
             }
 
-            timer += deltaTime;
+            timer += Time.deltaTime;
 
             if (timer >= miningInterval)
             {
@@ -55,19 +47,10 @@ namespace ProductionSystem
             }
         }
 
-        public override bool CanWork()
+        public virtual bool CanWork()
         {
-            bool baseCanWork = base.CanWork();
-            bool hasPower = powerConsumer != null && powerConsumer.CanWork();
-
-            if (ignorePowerCheck)
-            {
-                hasPower = true;
-            }
-
-            LogDebug($"CanWork 检查: base={baseCanWork}, power={hasPower}");
-
-            return baseCanWork && hasPower;
+            LogDebug($"CanWork 检查: base=true, power=true");
+            return true;
         }
 
         private bool CanMine()
