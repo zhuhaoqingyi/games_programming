@@ -21,6 +21,9 @@ public class CameraController : MonoBehaviour
     public float bottomBound = -50f;
     public float topBound = 50f;
 
+    [Header("调试模式")]
+    public bool debugMode = false;
+
     private Camera mainCamera;
     private float currentZoom;
     private Vector3 targetPosition;
@@ -43,19 +46,21 @@ public class CameraController : MonoBehaviour
         Vector3 movement = Vector3.zero;
         float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? fastMoveSpeed : moveSpeed;
 
-        if (Input.GetKey(KeyCode.W) || (enableEdgeScrolling && IsMouseAtTopEdge()))
+        bool useEdgeScrolling = enableEdgeScrolling && !debugMode;
+
+        if (Input.GetKey(KeyCode.W) || (useEdgeScrolling && IsMouseAtTopEdge()))
         {
             movement.y += currentSpeed * Time.deltaTime;
         }
-        if (Input.GetKey(KeyCode.S) || (enableEdgeScrolling && IsMouseAtBottomEdge()))
+        if (Input.GetKey(KeyCode.S) || (useEdgeScrolling && IsMouseAtBottomEdge()))
         {
             movement.y -= currentSpeed * Time.deltaTime;
         }
-        if (Input.GetKey(KeyCode.A) || (enableEdgeScrolling && IsMouseAtLeftEdge()))
+        if (Input.GetKey(KeyCode.A) || (useEdgeScrolling && IsMouseAtLeftEdge()))
         {
             movement.x -= currentSpeed * Time.deltaTime;
         }
-        if (Input.GetKey(KeyCode.D) || (enableEdgeScrolling && IsMouseAtRightEdge()))
+        if (Input.GetKey(KeyCode.D) || (useEdgeScrolling && IsMouseAtRightEdge()))
         {
             movement.x += currentSpeed * Time.deltaTime;
         }

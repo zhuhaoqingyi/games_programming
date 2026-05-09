@@ -102,4 +102,6 @@ MonoBehaviour:
   rotationSpeed: 15
   bobAmplitude: 0.15
   bobFrequency: 2
-  resourceType: 0
+  resourceType: 1
+  destroyDistance: 25
+  protectedTime: 3
