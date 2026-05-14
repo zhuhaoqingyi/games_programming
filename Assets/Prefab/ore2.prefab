@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1418574327904577108}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.1915255, y: -2.9531825, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -102,6 +102,5 @@ MonoBehaviour:
   rotationSpeed: 15
   bobAmplitude: 0.15
   bobFrequency: 2
-  resourceType: 1
   destroyDistance: 25
   protectedTime: 3

@@ -1,8 +1,9 @@
 using UnityEngine;
+using GameResources;
 
 namespace ProductionSystem
 {
-    public class MiningBuilding : MonoBehaviour
+    public class MiningBuilding : BuildingBase
     {
         [Header("采矿设置")]
         public int collectionRange = 2;
@@ -10,26 +11,40 @@ namespace ProductionSystem
 
         private float timer;
 
-        protected virtual void Awake()
+        protected override void Awake()
         {
+            base.Awake();
         }
 
-        protected virtual void Update()
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            Debug.Log($"[MiningBuilding] {name} 检测到碰撞: {other.gameObject.name}");
+
+            SpaceOre ore = other.GetComponent<SpaceOre>();
+            if (ore != null && !ore.IsCollected())
+            {
+                Debug.Log($"[MiningBuilding] {name} 检测到矿石，造成伤害并销毁");
+                TakeDamage(ore.damageToBuilding);
+                ore.Collect();
+            }
+        }
+
+        protected override void SetupCollider()
+        {
+            base.SetupCollider();
+        }
+
+        private void Update()
         {
             if (!CanMine()) return;
-            
+
             timer += Time.deltaTime;
-            
+
             if (timer >= collectionInterval)
             {
                 timer = 0;
                 CollectResourcesInRange();
             }
-        }
-
-        public virtual bool CanWork()
-        {
-            return true;
         }
 
         private bool CanMine()
@@ -44,7 +59,7 @@ namespace ProductionSystem
                 new Vector2(collectionRange, collectionRange),
                 0f
             );
-            
+
             foreach (Collider2D collider in hitColliders)
             {
                 SpaceOre ore = collider.GetComponent<SpaceOre>();
