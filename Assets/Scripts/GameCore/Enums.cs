@@ -27,6 +27,16 @@ namespace GameCore
         ShipAssembly
     }
 
+    public enum BuildingCategory
+    {
+        Core,
+        Power,
+        Production,
+        Logistics,
+        Storage,
+        Special
+    }
+
     public enum BuildingStatus
     {
         Placed,

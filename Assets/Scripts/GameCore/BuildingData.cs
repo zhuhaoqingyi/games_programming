@@ -17,6 +17,7 @@ namespace GameCore
     public class BuildingDefinition
     {
         public BuildingType type;
+        public BuildingCategory category;
         public string name;
         public string description;
         public int width;
@@ -27,12 +28,14 @@ namespace GameCore
         public bool isProductionBuilding;
         public List<BuildingCost> costs;
         public string prefabPath;
+        public string iconPath;
 
-        public BuildingDefinition(BuildingType type, string name, string description, 
+        public BuildingDefinition(BuildingType type, BuildingCategory category, string name, string description, 
             int width = 1, int height = 1, int powerConsumption = 0, int powerProduction = 0,
-            int storageCapacity = 0, bool isProductionBuilding = false, string prefabPath = "")
+            int storageCapacity = 0, bool isProductionBuilding = false, string prefabPath = "", string iconPath = "")
         {
             this.type = type;
+            this.category = category;
             this.name = name;
             this.description = description;
             this.width = width;
@@ -42,6 +45,7 @@ namespace GameCore
             this.storageCapacity = storageCapacity;
             this.isProductionBuilding = isProductionBuilding;
             this.prefabPath = prefabPath;
+            this.iconPath = iconPath;
             this.costs = new List<BuildingCost>();
         }
 

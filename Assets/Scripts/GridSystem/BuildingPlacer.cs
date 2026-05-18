@@ -1,5 +1,6 @@
 using UnityEngine;
 using GameCore;
+using UI;
 
 namespace GridSystem
 {
@@ -17,6 +18,16 @@ namespace GridSystem
 
         public delegate void BuildingRemoved(GridPosition position, BuildingType type);
         public event BuildingRemoved OnBuildingRemoved;
+
+        private void Start()
+        {
+            OnBuildingPlaced += HandleBuildingPlaced;
+        }
+
+        private void OnDestroy()
+        {
+            OnBuildingPlaced -= HandleBuildingPlaced;
+        }
 
         private void Update()
         {
@@ -112,6 +123,16 @@ namespace GridSystem
             mouseWorldPos.z = 0;
             
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
+            var buildingDef = DataConfig.GetBuilding(selectedBuilding);
+            
+            if (buildingDef != null && GameManager.Instance != null)
+            {
+                if (!buildingDef.CanAfford(GameManager.Instance.GetAllResources()))
+                {
+                    Debug.Log("资源不足，无法建造！");
+                    return;
+                }
+            }
             
             if (GridManager.Instance.CanPlaceBuilding(gridPos, selectedBuilding))
             {
@@ -119,8 +140,15 @@ namespace GridSystem
                 if (placed)
                 {
                     OnBuildingPlaced?.Invoke(gridPos, selectedBuilding);
-                    CancelPlacement();
                 }
+            }
+        }
+
+        private void HandleBuildingPlaced(GridPosition position, BuildingType type)
+        {
+            if (BuildingUI.Instance != null)
+            {
+                BuildingUI.Instance.OnBuildingPlacedSuccess(position, type);
             }
         }
 

@@ -34,76 +34,82 @@ namespace GameCore
         private static void InitializeBuildings()
         {
             var emergencyShelter = new BuildingDefinition(
-                BuildingType.EmergencyShelter, "太空紧急避难仓", "玩家开局核心根基",
+                BuildingType.EmergencyShelter, BuildingCategory.Core, "太空紧急避难仓", "玩家开局核心根基",
                 width: 2, height: 2, powerConsumption: 0, powerProduction: 0,
-                storageCapacity: 100);
+                storageCapacity: 100, iconPath: "Icons/Buildings/EmergencyShelter");
             BuildingDefinitions[BuildingType.EmergencyShelter] = emergencyShelter;
 
             var miningPlatform = new BuildingDefinition(
-                BuildingType.MiningPlatform, "太空漂浮采矿平台", "自动开采太空矿石和垃圾",
-                width: 1, height: 1, powerConsumption: 10, powerProduction: 0);
+                BuildingType.MiningPlatform, BuildingCategory.Production, "太空漂浮采矿平台", "自动开采太空矿石和垃圾",
+                width: 1, height: 1, powerConsumption: 10, powerProduction: 0,
+                iconPath: "Icons/Buildings/MiningPlatform");
             miningPlatform.costs.Add(new BuildingCost(ResourceType.SpaceOre, 20));
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
 
             var nuclearReactor = new BuildingDefinition(
-                BuildingType.NuclearReactor, "太空核能发电模块", "消耗矿石发电",
-                width: 2, height: 2, powerConsumption: 0, powerProduction: 50);
+                BuildingType.NuclearReactor, BuildingCategory.Power, "太空核能发电模块", "消耗矿石发电",
+                width: 2, height: 2, powerConsumption: 0, powerProduction: 50,
+                iconPath: "Icons/Buildings/NuclearReactor");
             nuclearReactor.costs.Add(new BuildingCost(ResourceType.SpaceOre, 50));
             BuildingDefinitions[BuildingType.NuclearReactor] = nuclearReactor;
 
             var solarArray = new BuildingDefinition(
-                BuildingType.SolarArray, "太空太阳能发电阵列", "无限清洁能源",
-                width: 3, height: 1, powerConsumption: 0, powerProduction: 30);
+                BuildingType.SolarArray, BuildingCategory.Power, "太空太阳能发电阵列", "无限清洁能源",
+                width: 3, height: 1, powerConsumption: 0, powerProduction: 30,
+                iconPath: "Icons/Buildings/SolarArray");
             solarArray.costs.Add(new BuildingCost(ResourceType.AlloyIngot, 30));
             solarArray.costs.Add(new BuildingCost(ResourceType.MechanicalPart, 10));
             BuildingDefinitions[BuildingType.SolarArray] = solarArray;
 
             var storageDock = new BuildingDefinition(
-                BuildingType.StorageDock, "太空仓储对接舱", "存储各类物资",
+                BuildingType.StorageDock, BuildingCategory.Storage, "太空仓储对接舱", "存储各类物资",
                 width: 2, height: 1, powerConsumption: 2, powerProduction: 0,
-                storageCapacity: 500);
+                storageCapacity: 500, iconPath: "Icons/Buildings/StorageDock");
             storageDock.costs.Add(new BuildingCost(ResourceType.SpaceOre, 30));
             BuildingDefinitions[BuildingType.StorageDock] = storageDock;
 
             var furnaceRefinery = new BuildingDefinition(
-                BuildingType.FurnaceRefinery, "熔炉精炼厂", "矿石精炼成合金锭",
+                BuildingType.FurnaceRefinery, BuildingCategory.Production, "熔炉精炼厂", "矿石精炼成合金锭",
                 width: 2, height: 1, powerConsumption: 15, powerProduction: 0,
-                isProductionBuilding: true);
+                isProductionBuilding: true, iconPath: "Icons/Buildings/FurnaceRefinery");
             furnaceRefinery.costs.Add(new BuildingCost(ResourceType.SpaceOre, 40));
             BuildingDefinitions[BuildingType.FurnaceRefinery] = furnaceRefinery;
 
             var partAssembly = new BuildingDefinition(
-                BuildingType.PartAssembly, "零件组装厂", "合金锭制成机械零件",
+                BuildingType.PartAssembly, BuildingCategory.Production, "零件组装厂", "合金锭制成机械零件",
                 width: 2, height: 1, powerConsumption: 20, powerProduction: 0,
-                isProductionBuilding: true);
+                isProductionBuilding: true, iconPath: "Icons/Buildings/PartAssembly");
             partAssembly.costs.Add(new BuildingCost(ResourceType.AlloyIngot, 30));
             partAssembly.costs.Add(new BuildingCost(ResourceType.SpaceDebris, 20));
             BuildingDefinitions[BuildingType.PartAssembly] = partAssembly;
 
             var advancedFactory = new BuildingDefinition(
-                BuildingType.AdvancedFactory, "高级加工厂", "生产电子元件和高级合金",
+                BuildingType.AdvancedFactory, BuildingCategory.Production, "高级加工厂", "生产电子元件和高级合金",
                 width: 3, height: 2, powerConsumption: 40, powerProduction: 0,
-                isProductionBuilding: true);
+                isProductionBuilding: true, iconPath: "Icons/Buildings/AdvancedFactory");
             advancedFactory.costs.Add(new BuildingCost(ResourceType.AlloyIngot, 50));
             advancedFactory.costs.Add(new BuildingCost(ResourceType.MechanicalPart, 30));
             BuildingDefinitions[BuildingType.AdvancedFactory] = advancedFactory;
 
             var conveyorBelt = new BuildingDefinition(
-                BuildingType.ConveyorBelt, "传送带", "自动运输物资",
-                width: 1, height: 1, powerConsumption: 1, powerProduction: 0);
+                BuildingType.ConveyorBelt, BuildingCategory.Logistics, "传送带", "自动运输物资",
+                width: 1, height: 1, powerConsumption: 1, powerProduction: 0,
+                iconPath: "Icons/Buildings/ConveyorBelt");
             conveyorBelt.costs.Add(new BuildingCost(ResourceType.MechanicalPart, 5));
             BuildingDefinitions[BuildingType.ConveyorBelt] = conveyorBelt;
 
             var sorter = new BuildingDefinition(
-                BuildingType.Sorter, "分拣器", "分类不同材料",
-                width: 1, height: 1, powerConsumption: 5, powerProduction: 0);
+                BuildingType.Sorter, BuildingCategory.Logistics, "分拣器", "分类不同材料",
+                width: 1, height: 1, powerConsumption: 5, powerProduction: 0,
+                iconPath: "Icons/Buildings/Sorter");
             sorter.costs.Add(new BuildingCost(ResourceType.MechanicalPart, 10));
             sorter.costs.Add(new BuildingCost(ResourceType.ElectronicComponent, 2));
             BuildingDefinitions[BuildingType.Sorter] = sorter;
 
             var shipAssembly = new BuildingDefinition(
-                BuildingType.ShipAssembly, "飞船组装平台", "建造星际飞船",
-                width: 5, height: 3, powerConsumption: 100, powerProduction: 0);
+                BuildingType.ShipAssembly, BuildingCategory.Special, "飞船组装平台", "建造星际飞船",
+                width: 5, height: 3, powerConsumption: 100, powerProduction: 0,
+                iconPath: "Icons/Buildings/ShipAssembly");
             shipAssembly.costs.Add(new BuildingCost(ResourceType.AdvancedAlloy, 100));
             shipAssembly.costs.Add(new BuildingCost(ResourceType.ElectronicComponent, 50));
             shipAssembly.costs.Add(new BuildingCost(ResourceType.MechanicalPart, 80));
@@ -162,6 +168,33 @@ namespace GameCore
                 }
             }
             return result;
+        }
+
+        public static List<BuildingDefinition> GetBuildingsByCategory(BuildingCategory category)
+        {
+            var result = new List<BuildingDefinition>();
+            foreach (var building in BuildingDefinitions.Values)
+            {
+                if (building.category == category)
+                {
+                    result.Add(building);
+                }
+            }
+            return result;
+        }
+
+        public static string GetCategoryName(BuildingCategory category)
+        {
+            switch (category)
+            {
+                case BuildingCategory.Core: return "核心设施";
+                case BuildingCategory.Power: return "能源设施";
+                case BuildingCategory.Production: return "生产设施";
+                case BuildingCategory.Logistics: return "物流设施";
+                case BuildingCategory.Storage: return "仓储设施";
+                case BuildingCategory.Special: return "特殊设施";
+                default: return "未知";
+            }
         }
     }
 }
