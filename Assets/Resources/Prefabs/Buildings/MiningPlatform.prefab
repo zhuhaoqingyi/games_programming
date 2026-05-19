@@ -111,7 +111,7 @@ GameObject:
   - component: {fileID: 6741897877255639744}
   - component: {fileID: 7350723533862809042}
   m_Layer: 0
-  m_Name: OreCollector
+  m_Name: MiningPlatform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -215,10 +215,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collectionRange: 2
-  collectionInterval: 2
   maxHealth: 100
   currentHealth: 0
+  collectionRange: 2
+  collectionInterval: 2
 --- !u!1 &799258291795048484
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,7 +400,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  collectionRange: 2
-  collectionInterval: 2
   maxHealth: 100
   currentHealth: 0
+  collectionRange: 2
+  collectionInterval: 2

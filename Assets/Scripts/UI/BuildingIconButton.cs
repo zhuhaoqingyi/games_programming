@@ -11,7 +11,6 @@ namespace UI
         public Image iconImage;
         public Text buildingNameText;
         public GameObject selectedIndicator;
-        public GameObject lockedOverlay;
         public Color normalColor = Color.white;
         public Color selectedColor = Color.yellow;
         public Color lockedColor = Color.gray;
@@ -53,18 +52,9 @@ namespace UI
                         iconImage.sprite = sprite;
                         iconImage.enabled = true;
                     }
-                    else
-                    {
-                        iconImage.enabled = false;
-                    }
                 }
-                else
-                {
-                    iconImage.enabled = false;
-                }
+                UpdateIconColor();
             }
-
-            UpdateAffordability();
         }
 
         public void UpdateAffordability()
@@ -73,15 +63,24 @@ namespace UI
             {
                 canAfford = buildingDef.CanAfford(GameManager.Instance.GetAllResources());
             }
+            UpdateIconColor();
+        }
 
-            if (lockedOverlay != null)
+        private void UpdateIconColor()
+        {
+            if (iconImage == null) return;
+
+            if (isSelected)
             {
-                lockedOverlay.SetActive(!canAfford);
+                iconImage.color = selectedColor;
             }
-
-            if (iconImage != null)
+            else if (!canAfford)
             {
-                iconImage.color = canAfford ? normalColor : lockedColor;
+                iconImage.color = lockedColor;
+            }
+            else
+            {
+                iconImage.color = normalColor;
             }
         }
 
@@ -92,6 +91,7 @@ namespace UI
             {
                 selectedIndicator.SetActive(selected);
             }
+            UpdateIconColor();
         }
 
         public void OnPointerClick(PointerEventData eventData)

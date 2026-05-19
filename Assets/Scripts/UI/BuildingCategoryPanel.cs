@@ -58,6 +58,12 @@ namespace UI
         {
             ClearIcons();
 
+            if (buildingIconPrefab == null)
+            {
+                Debug.LogError("buildingIconPrefab is not assigned in BuildingCategoryPanel");
+                return;
+            }
+
             foreach (var building in buildingsInCategory)
             {
                 GameObject iconObj = Instantiate(buildingIconPrefab, contentContainer);
