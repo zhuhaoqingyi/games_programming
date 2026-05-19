@@ -14,20 +14,12 @@ namespace GridSystem
         public float cellSize = 1f;
         public Color gridColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
 
-        [Header("Placement Grid Display")]
-        public bool showPlacementGrid = true;
-        public Color placementGridColor = new Color(0.2f, 0.5f, 1f, 0.4f);
-        public float placementGridLineWidth = 2f;
-
         [Header("References")]
         public Transform buildingsContainer;
 
         private bool[,] gridCells;
         private Dictionary<GridPosition, BuildingType> placedBuildings = new Dictionary<GridPosition, BuildingType>();
         private Dictionary<GridPosition, GameObject> placedBuildingObjects = new Dictionary<GridPosition, GameObject>();
-        private GameObject placementGridObject;
-        private LineRenderer placementGridRenderer;
-        private bool isDisplayingPlacementGrid = false;
 
         private void Awake()
         {
@@ -36,7 +28,6 @@ namespace GridSystem
                 Instance = this;
                 InitializeGrid();
                 InitializeContainer();
-                CreatePlacementGrid();
             }
             else
             {
@@ -54,87 +45,6 @@ namespace GridSystem
                 {
                     gridCells[x, y] = false;
                 }
-            }
-        }
-
-        private void CreatePlacementGrid()
-        {
-            if (!showPlacementGrid) return;
-
-            placementGridObject = new GameObject("PlacementGrid");
-            placementGridObject.transform.SetParent(transform);
-            placementGridObject.transform.localPosition = Vector3.zero;
-            placementGridObject.SetActive(false);
-
-            placementGridRenderer = placementGridObject.AddComponent<LineRenderer>();
-            placementGridRenderer.startWidth = placementGridLineWidth;
-            placementGridRenderer.endWidth = placementGridLineWidth;
-            placementGridRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            placementGridRenderer.startColor = placementGridColor;
-            placementGridRenderer.endColor = placementGridColor;
-            placementGridRenderer.positionCount = 0;
-        }
-
-        private void UpdatePlacementGrid(Vector3 worldCenter)
-        {
-            if (placementGridRenderer == null || !showPlacementGrid) return;
-
-            // 以鼠标位置为中心显示3x3网格
-            GridPosition centerPos = WorldToGrid(worldCenter);
-            int displayRange = 5;
-            int minX = Mathf.Max(0, centerPos.x - displayRange);
-            int maxX = Mathf.Min(gridWidth - 1, centerPos.x + displayRange);
-            int minY = Mathf.Max(0, centerPos.y - displayRange);
-            int maxY = Mathf.Min(gridHeight - 1, centerPos.y + displayRange);
-
-            List<Vector3> positions = new List<Vector3>();
-
-            // 绘制水平线
-            for (int y = minY; y <= maxY + 1; y++)
-            {
-                Vector3 start = GridToWorld(new GridPosition(minX, y)) + new Vector3(-cellSize * 0.5f, cellSize * 0.5f, 0);
-                Vector3 end = GridToWorld(new GridPosition(maxX + 1, y)) + new Vector3(-cellSize * 0.5f, cellSize * 0.5f, 0);
-                positions.Add(start);
-                positions.Add(end);
-            }
-
-            // 绘制垂直线
-            for (int x = minX; x <= maxX + 1; x++)
-            {
-                Vector3 start = GridToWorld(new GridPosition(x, minY)) + new Vector3(-cellSize * 0.5f, cellSize * 0.5f, 0);
-                Vector3 end = GridToWorld(new GridPosition(x, maxY + 1)) + new Vector3(-cellSize * 0.5f, cellSize * 0.5f, 0);
-                positions.Add(start);
-                positions.Add(end);
-            }
-
-            placementGridRenderer.positionCount = positions.Count;
-            placementGridRenderer.SetPositions(positions.ToArray());
-        }
-
-        public void ShowPlacementGrid(Vector3 worldPosition)
-        {
-            if (placementGridObject != null)
-            {
-                placementGridObject.SetActive(true);
-                isDisplayingPlacementGrid = true;
-                UpdatePlacementGrid(worldPosition);
-            }
-        }
-
-        public void HidePlacementGrid()
-        {
-            if (placementGridObject != null)
-            {
-                placementGridObject.SetActive(false);
-                isDisplayingPlacementGrid = false;
-            }
-        }
-
-        public void UpdatePlacementGridPosition(Vector3 worldPosition)
-        {
-            if (isDisplayingPlacementGrid)
-            {
-                UpdatePlacementGrid(worldPosition);
             }
         }
 

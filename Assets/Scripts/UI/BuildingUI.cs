@@ -197,6 +197,11 @@ namespace UI
             {
                 buildingPlacer.SelectBuilding(def.type);
             }
+
+            if (GridRenderer.Instance != null)
+            {
+                GridRenderer.Instance.ShowGrid();
+            }
         }
 
         private void TryPlaceBuilding()
@@ -237,6 +242,11 @@ namespace UI
             if (buildingPlacer != null)
             {
                 buildingPlacer.CancelPlacement();
+            }
+
+            if (GridRenderer.Instance != null)
+            {
+                GridRenderer.Instance.HideGrid();
             }
 
             DeselectAll();

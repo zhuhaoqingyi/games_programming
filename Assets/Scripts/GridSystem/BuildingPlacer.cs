@@ -6,12 +6,17 @@ namespace GridSystem
 {
     public class BuildingPlacer : MonoBehaviour
     {
+        [Header("Settings")]
         public Camera mainCamera;
         public GameObject previewPrefab;
+        public Color validPlacementColor = new Color(1f, 1f, 1f, 0.7f);
+        public Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.7f);
         
         private GameObject currentPreview;
         private BuildingType selectedBuilding = BuildingType.None;
         private bool isPlacing = false;
+        private Material originalMaterial;
+        private Color originalColor;
 
         public delegate void BuildingPlaced(GridPosition position, BuildingType type);
         public event BuildingPlaced OnBuildingPlaced;
@@ -55,10 +60,6 @@ namespace GridSystem
             selectedBuilding = buildingType;
             isPlacing = true;
             CreatePreview();
-            
-            Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            mouseWorldPos.z = 0;
-            GridManager.Instance.ShowPlacementGrid(mouseWorldPos);
         }
 
         public void CancelPlacement()
@@ -66,7 +67,6 @@ namespace GridSystem
             isPlacing = false;
             selectedBuilding = BuildingType.None;
             DestroyPreview();
-            GridManager.Instance.HidePlacementGrid();
         }
 
         private void CreatePreview()
@@ -74,22 +74,30 @@ namespace GridSystem
             if (previewPrefab != null)
             {
                 currentPreview = Instantiate(previewPrefab);
+                currentPreview.name = "BuildingPreview";
                 
                 var buildingDef = DataConfig.GetBuilding(selectedBuilding);
                 if (buildingDef != null)
                 {
-                    Renderer renderer = currentPreview.GetComponentInChildren<Renderer>();
-                    if (renderer != null)
-                    {
-                        renderer.transform.localScale = new Vector3(
-                            buildingDef.width * 0.9f,
-                            buildingDef.height * 0.9f,
-                            0.5f
-                        );
-                    }
+                    Transform visualTransform = currentPreview.transform;
+                    visualTransform.localScale = new Vector3(
+                        buildingDef.width * 0.9f,
+                        buildingDef.height * 0.9f,
+                        0.5f
+                    );
                 }
                 
-                UpdatePreviewPosition();
+                Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
+                if (renderers.Length > 0)
+                {
+                    originalMaterial = renderers[0].material;
+                    originalColor = renderers[0].material.color;
+                }
+                
+                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                mouseWorldPos.z = 0;
+                UpdatePreviewPosition(mouseWorldPos);
+                UpdatePreviewValidity(mouseWorldPos);
             }
         }
 
@@ -99,6 +107,7 @@ namespace GridSystem
             {
                 Destroy(currentPreview);
                 currentPreview = null;
+                originalMaterial = null;
             }
         }
 
@@ -111,13 +120,13 @@ namespace GridSystem
             
             UpdatePreviewPosition(mouseWorldPos);
             UpdatePreviewValidity(mouseWorldPos);
-            GridManager.Instance.UpdatePlacementGridPosition(mouseWorldPos);
         }
 
         private void UpdatePreviewPosition(Vector3 mouseWorldPos)
         {
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             Vector3 worldPos = GridManager.Instance.GridToWorld(gridPos);
+            worldPos.z = -0.1f;
             
             currentPreview.transform.position = worldPos;
         }
@@ -127,12 +136,12 @@ namespace GridSystem
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             bool isValid = GridManager.Instance.CanPlaceBuilding(gridPos, selectedBuilding);
             
-            Color color = isValid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
+            Color targetColor = isValid ? validPlacementColor : invalidPlacementColor;
             
             Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
             {
-                renderer.material.color = color;
+                renderer.material.color = targetColor;
             }
         }
 
