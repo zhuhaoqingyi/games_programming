@@ -9,6 +9,14 @@ namespace UI
     public class BuildingUI : MonoBehaviour
     {
         public static BuildingUI Instance { get; private set; }
+        
+        // 事件：选择建筑
+        public delegate void BuildingSelectedDelegate(BuildingType buildingType);
+        public static event BuildingSelectedDelegate OnBuildingSelected;
+        
+        // 事件：退出建筑模式
+        public delegate void BuildingModeExitDelegate();
+        public static event BuildingModeExitDelegate OnBuildingModeExit;
 
         [Header("UI Panels")]
         public GameObject mainPanel;
@@ -193,6 +201,9 @@ namespace UI
         {
             isBuildingMode = true;
 
+            // 触发选择建筑事件
+            OnBuildingSelected?.Invoke(def.type);
+
             if (buildingPlacer != null)
             {
                 buildingPlacer.SelectBuilding(def.type);
@@ -215,6 +226,7 @@ namespace UI
             {
                 if (buildingPlacer != null)
                 {
+                    buildingPlacer.TryPlaceBuilding();
                 }
             }
         }
@@ -238,6 +250,9 @@ namespace UI
         public void CancelBuildingMode()
         {
             isBuildingMode = false;
+
+            // 触发退出建筑模式事件
+            OnBuildingModeExit?.Invoke();
 
             if (buildingPlacer != null)
             {

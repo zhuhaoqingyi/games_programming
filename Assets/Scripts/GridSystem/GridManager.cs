@@ -14,10 +14,17 @@ namespace GridSystem
         public float cellSize = 1f;
         public Color gridColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
 
+        [Header("Debug Settings")]
+        public bool showDebugInfo = false;
+        public bool showGridCoordinates = false;
+        public Color textColor = Color.white;
+        public float textScale = 0.3f;
+
         [Header("References")]
         public Transform buildingsContainer;
 
-        private bool[,] gridCells;
+        private HashSet<GridPosition> gridCells = new HashSet<GridPosition>();
+        private HashSet<GridPosition> functionalAreaCells = new HashSet<GridPosition>();
         private Dictionary<GridPosition, BuildingType> placedBuildings = new Dictionary<GridPosition, BuildingType>();
         private Dictionary<GridPosition, GameObject> placedBuildingObjects = new Dictionary<GridPosition, GameObject>();
 
@@ -26,25 +33,11 @@ namespace GridSystem
             if (Instance == null)
             {
                 Instance = this;
-                InitializeGrid();
                 InitializeContainer();
             }
             else
             {
                 Destroy(gameObject);
-            }
-        }
-
-        private void InitializeGrid()
-        {
-            gridCells = new bool[gridWidth, gridHeight];
-            
-            for (int x = 0; x < gridWidth; x++)
-            {
-                for (int y = 0; y < gridHeight; y++)
-                {
-                    gridCells[x, y] = false;
-                }
             }
         }
 
@@ -82,6 +75,16 @@ namespace GridSystem
             );
         }
 
+        public Vector3 GridToWorldWithOffset(GridPosition gridPos, int width, int height)
+        {
+            Vector3 worldPos = GridToWorld(gridPos);
+            float offsetX = (width - 1) * cellSize / 2f;
+            float offsetY = (height - 1) * cellSize / 2f;
+            worldPos.x += offsetX;
+            worldPos.y += offsetY;
+            return worldPos;
+        }
+
         public bool CanPlaceBuilding(GridPosition position, BuildingType buildingType)
         {
             var buildingDef = DataConfig.GetBuilding(buildingType);
@@ -93,13 +96,63 @@ namespace GridSystem
                 {
                     GridPosition checkPos = position.Offset(dx, dy);
                     
-                    if (!IsValidPosition(checkPos))
+                    if (gridCells.Contains(checkPos))
                         return false;
-                    
-                    if (gridCells[checkPos.x, checkPos.y])
+                        
+                    if (functionalAreaCells.Contains(checkPos))
+                        return false;
+
+                    if (BoardManager.Instance != null && !BoardManager.Instance.HasBoardAt(checkPos))
                         return false;
                 }
             }
+
+            if (buildingDef.functionalAreaWidth > 0 || buildingDef.functionalAreaHeight > 0)
+            {
+                int funcStartX = 0, funcStartY = 0;
+                int funcEndX = buildingDef.functionalAreaWidth;
+                int funcEndY = buildingDef.functionalAreaHeight;
+
+                switch (buildingDef.direction)
+                {
+                    case BuildDirection.North:
+                        funcStartX = 0;
+                        funcStartY = buildingDef.height;
+                        funcEndX = buildingDef.width;
+                        funcEndY = buildingDef.height + buildingDef.functionalAreaHeight;
+                        break;
+                    case BuildDirection.South:
+                        funcStartX = 0;
+                        funcStartY = -buildingDef.functionalAreaHeight;
+                        funcEndX = buildingDef.width;
+                        funcEndY = 0;
+                        break;
+                    case BuildDirection.East:
+                        funcStartX = buildingDef.width;
+                        funcStartY = 0;
+                        funcEndX = buildingDef.width + buildingDef.functionalAreaWidth;
+                        funcEndY = buildingDef.height;
+                        break;
+                    case BuildDirection.West:
+                        funcStartX = -buildingDef.functionalAreaWidth;
+                        funcStartY = 0;
+                        funcEndX = 0;
+                        funcEndY = buildingDef.height;
+                        break;
+                }
+
+                for (int dx = funcStartX; dx < funcEndX; dx++)
+                {
+                    for (int dy = funcStartY; dy < funcEndY; dy++)
+                    {
+                        GridPosition checkPos = position.Offset(dx, dy);
+                        
+                        if (gridCells.Contains(checkPos))
+                            return false;
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -111,6 +164,13 @@ namespace GridSystem
             var buildingDef = DataConfig.GetBuilding(buildingType);
             if (buildingDef == null) return false;
 
+            if (showDebugInfo)
+            {
+                Debug.Log($"[GridManager] 开始放置建筑: {buildingDef.name}");
+                Debug.Log($"[GridManager] 放置位置: 网格坐标 = ({position.x}, {position.y})");
+                Debug.Log($"[GridManager] 建筑大小: {buildingDef.width} x {buildingDef.height}");
+            }
+
             GameObject buildingObj = null;
 
             if (!string.IsNullOrEmpty(buildingDef.prefabPath))
@@ -119,11 +179,12 @@ namespace GridSystem
                 if (prefab != null)
                 {
                     buildingObj = Instantiate(prefab);
-                    Debug.Log($"成功加载建筑预制体: {buildingDef.prefabPath}");
+                    if (showDebugInfo)
+                        Debug.Log($"[GridManager] 成功加载建筑预制体: {buildingDef.prefabPath}");
                 }
                 else
                 {
-                    Debug.LogWarning($"无法加载建筑预制体: {buildingDef.prefabPath}，将使用简单几何体");
+                    Debug.LogWarning($"[GridManager] 无法加载建筑预制体: {buildingDef.prefabPath}，将使用简单几何体");
                 }
             }
 
@@ -134,7 +195,19 @@ namespace GridSystem
 
             if (buildingObj != null)
             {
-                Vector3 worldPos = GridToWorld(position);
+                Vector3 worldPos = new Vector3(
+                    position.x * cellSize + buildingDef.width * cellSize / 2f,
+                    position.y * cellSize + buildingDef.height * cellSize / 2f,
+                    0f
+                );
+                
+                if (showDebugInfo)
+                {
+                    Debug.Log($"[GridManager] 世界坐标: ({worldPos.x:F2}, {worldPos.y:F2})");
+                    Debug.Log($"[GridManager] 左下角格子: ({position.x}, {position.y})");
+                    Debug.Log($"[GridManager] 右上角格子: ({position.x + buildingDef.width - 1}, {position.y + buildingDef.height - 1})");
+                }
+                
                 buildingObj.transform.position = worldPos;
                 buildingObj.transform.SetParent(buildingsContainer);
                 buildingObj.name = $"{buildingDef.name}_{position.x}_{position.y}";
@@ -160,11 +233,53 @@ namespace GridSystem
                 for (int dy = 0; dy < buildingDef.height; dy++)
                 {
                     GridPosition cellPos = position.Offset(dx, dy);
-                    gridCells[cellPos.x, cellPos.y] = true;
+                    gridCells.Add(cellPos);
+                }
+            }
+
+            if (buildingDef.functionalAreaWidth > 0 || buildingDef.functionalAreaHeight > 0)
+            {
+                int funcStartX = 0, funcStartY = 0;
+                int funcEndX = 0, funcEndY = 0;
+
+                switch (buildingDef.direction)
+                {
+                    case BuildDirection.North:
+                        funcStartX = 0; funcStartY = buildingDef.height;
+                        funcEndX = buildingDef.width; funcEndY = buildingDef.height + buildingDef.functionalAreaHeight;
+                        break;
+                    case BuildDirection.South:
+                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
+                        funcEndX = buildingDef.width; funcEndY = 0;
+                        break;
+                    case BuildDirection.East:
+                        funcStartX = buildingDef.width; funcStartY = 0;
+                        funcEndX = buildingDef.width + buildingDef.functionalAreaWidth; funcEndY = buildingDef.height;
+                        break;
+                    case BuildDirection.West:
+                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = buildingDef.height;
+                        break;
+                }
+
+                for (int dx = funcStartX; dx < funcEndX; dx++)
+                {
+                    for (int dy = funcStartY; dy < funcEndY; dy++)
+                    {
+                        GridPosition cellPos = position.Offset(dx, dy);
+                        functionalAreaCells.Add(cellPos);
+                    }
                 }
             }
 
             placedBuildings[position] = buildingType;
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"[GridManager] 建筑放置成功: {buildingDef.name}");
+                Debug.Log("-----------------------------");
+            }
+            
             return true;
         }
 
@@ -174,6 +289,7 @@ namespace GridSystem
 
             GameObject visualObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
             visualObj.transform.SetParent(buildingObj.transform);
+            
             visualObj.transform.localPosition = Vector3.zero;
             visualObj.transform.localScale = new Vector3(buildingDef.width * cellSize * 0.9f, buildingDef.height * cellSize * 0.9f, 0.5f);
 
@@ -200,6 +316,9 @@ namespace GridSystem
                     case BuildingCategory.Special:
                         renderer.material.color = new Color(1f, 0.8f, 0.2f);
                         break;
+                    case BuildingCategory.Board:
+                        renderer.material.color = new Color(0.3f, 0.3f, 0.3f);
+                        break;
                 }
             }
 
@@ -214,12 +333,53 @@ namespace GridSystem
             var buildingType = placedBuildings[position];
             var buildingDef = DataConfig.GetBuilding(buildingType);
             
+            if (showDebugInfo)
+            {
+                Debug.Log($"[GridManager] 移除建筑: {buildingDef.name}");
+                Debug.Log($"[GridManager] 位置: ({position.x}, {position.y})");
+            }
+            
             for (int dx = 0; dx < buildingDef.width; dx++)
             {
                 for (int dy = 0; dy < buildingDef.height; dy++)
                 {
                     GridPosition cellPos = position.Offset(dx, dy);
-                    gridCells[cellPos.x, cellPos.y] = false;
+                    gridCells.Remove(cellPos);
+                }
+            }
+
+            if (buildingDef.functionalAreaWidth > 0 || buildingDef.functionalAreaHeight > 0)
+            {
+                int funcStartX = 0, funcStartY = 0;
+                int funcEndX = 0, funcEndY = 0;
+
+                switch (buildingDef.direction)
+                {
+                    case BuildDirection.North:
+                        funcStartX = 0; funcStartY = buildingDef.height;
+                        funcEndX = buildingDef.width; funcEndY = buildingDef.height + buildingDef.functionalAreaHeight;
+                        break;
+                    case BuildDirection.South:
+                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
+                        funcEndX = buildingDef.width; funcEndY = 0;
+                        break;
+                    case BuildDirection.East:
+                        funcStartX = buildingDef.width; funcStartY = 0;
+                        funcEndX = buildingDef.width + buildingDef.functionalAreaWidth; funcEndY = buildingDef.height;
+                        break;
+                    case BuildDirection.West:
+                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = buildingDef.height;
+                        break;
+                }
+
+                for (int dx = funcStartX; dx < funcEndX; dx++)
+                {
+                    for (int dy = funcStartY; dy < funcEndY; dy++)
+                    {
+                        GridPosition cellPos = position.Offset(dx, dy);
+                        functionalAreaCells.Remove(cellPos);
+                    }
                 }
             }
 
@@ -230,6 +390,13 @@ namespace GridSystem
             }
 
             placedBuildings.Remove(position);
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"[GridManager] 建筑移除成功");
+                Debug.Log("-----------------------------");
+            }
+            
             return true;
         }
 
@@ -283,9 +450,84 @@ namespace GridSystem
             return new Dictionary<GridPosition, BuildingType>(placedBuildings);
         }
 
+        public string GetPlacementFailureReason(GridPosition position, BuildingType buildingType)
+        {
+            var buildingDef = DataConfig.GetBuilding(buildingType);
+            if (buildingDef == null) return "建筑定义不存在";
+
+            for (int dx = 0; dx < buildingDef.width; dx++)
+            {
+                for (int dy = 0; dy < buildingDef.height; dy++)
+                {
+                    GridPosition checkPos = position.Offset(dx, dy);
+                    
+                    if (gridCells.Contains(checkPos))
+                        return $"与已有建筑重叠: ({checkPos.x}, {checkPos.y})";
+                        
+                    if (functionalAreaCells.Contains(checkPos))
+                        return $"与功能区域重叠: ({checkPos.x}, {checkPos.y})";
+
+                    if (BoardManager.Instance != null && !BoardManager.Instance.HasBoardAt(checkPos))
+                        return $"缺少太空板支撑: ({checkPos.x}, {checkPos.y})";
+                }
+            }
+
+            if (buildingDef.functionalAreaWidth > 0 || buildingDef.functionalAreaHeight > 0)
+            {
+                int funcStartX = 0, funcStartY = 0;
+                int funcEndX = 0, funcEndY = 0;
+
+                switch (buildingDef.direction)
+                {
+                    case BuildDirection.North:
+                        funcStartX = 0; funcStartY = buildingDef.height;
+                        funcEndX = buildingDef.width; funcEndY = buildingDef.height + buildingDef.functionalAreaHeight;
+                        break;
+                    case BuildDirection.South:
+                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
+                        funcEndX = buildingDef.width; funcEndY = 0;
+                        break;
+                    case BuildDirection.East:
+                        funcStartX = buildingDef.width; funcStartY = 0;
+                        funcEndX = buildingDef.width + buildingDef.functionalAreaWidth; funcEndY = buildingDef.height;
+                        break;
+                    case BuildDirection.West:
+                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = buildingDef.height;
+                        break;
+                }
+
+                for (int dx = funcStartX; dx < funcEndX; dx++)
+                {
+                    for (int dy = funcStartY; dy < funcEndY; dy++)
+                    {
+                        GridPosition checkPos = position.Offset(dx, dy);
+                        
+                        if (gridCells.Contains(checkPos))
+                            return $"功能区域与已有建筑重叠: ({checkPos.x}, {checkPos.y})";
+                    }
+                }
+            }
+
+            return "";
+        }
+
         private void OnDrawGizmos()
         {
             DrawGrid();
+            
+            if (showGridCoordinates && Application.isPlaying)
+            {
+                DrawGridCoordinates();
+            }
+        }
+
+        private void DrawGridCoordinates()
+        {
+            GUIStyle style = new GUIStyle();
+            style.normal.textColor = textColor;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.fontSize = Mathf.RoundToInt(12 * textScale);
         }
 
         private void DrawGrid()

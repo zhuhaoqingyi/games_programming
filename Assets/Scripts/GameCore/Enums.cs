@@ -24,7 +24,18 @@ namespace GameCore
         AdvancedFactory,
         ConveyorBelt,
         Sorter,
-        ShipAssembly
+        ShipAssembly,
+        BasicBoard,
+        ReinforcedBoard,
+        AdvancedBoard
+    }
+
+    public enum BoardType
+    {
+        None,
+        BasicBoard,
+        ReinforcedBoard,
+        AdvancedBoard
     }
 
     public enum BuildingCategory
@@ -34,7 +45,8 @@ namespace GameCore
         Production,
         Logistics,
         Storage,
-        Special
+        Special,
+        Board
     }
 
     public enum BuildingStatus
@@ -43,5 +55,13 @@ namespace GameCore
         Active,
         Inactive,
         Disabled
+    }
+
+    public enum BuildDirection
+    {
+        North,
+        South,
+        East,
+        West
     }
 }

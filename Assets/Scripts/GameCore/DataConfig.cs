@@ -2,15 +2,64 @@ using System.Collections.Generic;
 
 namespace GameCore
 {
+    public class BoardDefinition
+    {
+        public BoardType type;
+        public string name;
+        public string description;
+        public BuildingCategory category;
+        public List<BoardCost> costs;
+        public string prefabPath;
+        public string iconPath;
+
+        public BoardDefinition(BoardType type, BuildingCategory category, string name, string description, string prefabPath, string iconPath)
+        {
+            this.type = type;
+            this.category = category;
+            this.name = name;
+            this.description = description;
+            this.prefabPath = prefabPath;
+            this.iconPath = iconPath;
+            this.costs = new List<BoardCost>();
+        }
+
+        public bool CanAfford(Dictionary<ResourceType, int> resources)
+        {
+            if (costs == null) return true;
+            foreach (var cost in costs)
+            {
+                if (!resources.TryGetValue(cost.resourceType, out int amount) || amount < cost.amount)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public class BoardCost
+    {
+        public ResourceType resourceType;
+        public int amount;
+
+        public BoardCost(ResourceType resourceType, int amount)
+        {
+            this.resourceType = resourceType;
+            this.amount = amount;
+        }
+    }
+
     public static class DataConfig
     {
         public static Dictionary<ResourceType, ResourceDefinition> ResourceDefinitions = new Dictionary<ResourceType, ResourceDefinition>();
         public static Dictionary<BuildingType, BuildingDefinition> BuildingDefinitions = new Dictionary<BuildingType, BuildingDefinition>();
+        public static Dictionary<BoardType, BoardDefinition> BoardDefinitions = new Dictionary<BoardType, BoardDefinition>();
         public static Dictionary<string, RecipeDefinition> RecipeDefinitions = new Dictionary<string, RecipeDefinition>();
 
         static DataConfig()
         {
             InitializeResources();
+            InitializeBoards();
             InitializeBuildings();
             InitializeRecipes();
         }
@@ -31,6 +80,59 @@ namespace GameCore
                 ResourceType.AdvancedAlloy, "高级合金", "用于建造飞船的顶级材料", 4.0f);
         }
 
+        private static void InitializeBoards()
+        {
+            var basicBoard = new BoardDefinition(
+                BoardType.BasicBoard, BuildingCategory.Board, "基础太空板", "最基础的太空平台模块",
+                prefabPath: "Prefabs/Boards/BasicBoard", iconPath: "Icons/Boards/BasicBoard");
+            basicBoard.costs.Add(new BoardCost(ResourceType.SpaceDebris, 5));
+            BoardDefinitions[BoardType.BasicBoard] = basicBoard;
+
+            var reinforcedBoard = new BoardDefinition(
+                BoardType.ReinforcedBoard, BuildingCategory.Board, "加固太空板", "加固结构，更坚固",
+                prefabPath: "Prefabs/Boards/ReinforcedBoard", iconPath: "Icons/Boards/ReinforcedBoard");
+            reinforcedBoard.costs.Add(new BoardCost(ResourceType.AlloyIngot, 10));
+            reinforcedBoard.costs.Add(new BoardCost(ResourceType.SpaceDebris, 10));
+            BoardDefinitions[BoardType.ReinforcedBoard] = reinforcedBoard;
+
+            var advancedBoard = new BoardDefinition(
+                BoardType.AdvancedBoard, BuildingCategory.Board, "高级太空板", "高级复合太空板",
+                prefabPath: "Prefabs/Boards/AdvancedBoard", iconPath: "Icons/Boards/AdvancedBoard");
+            advancedBoard.costs.Add(new BoardCost(ResourceType.AdvancedAlloy, 5));
+            advancedBoard.costs.Add(new BoardCost(ResourceType.MechanicalPart, 10));
+            BoardDefinitions[BoardType.AdvancedBoard] = advancedBoard;
+
+            var basicBoardBuilding = new BuildingDefinition(
+                BuildingType.BasicBoard, BuildingCategory.Board, basicBoard.name, basicBoard.description,
+                width: 1, height: 1, prefabPath: basicBoard.prefabPath, iconPath: basicBoard.iconPath,
+                isBoard: true);
+            foreach (var cost in basicBoard.costs)
+            {
+                basicBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
+            }
+            BuildingDefinitions[BuildingType.BasicBoard] = basicBoardBuilding;
+
+            var reinforcedBoardBuilding = new BuildingDefinition(
+                BuildingType.ReinforcedBoard, BuildingCategory.Board, reinforcedBoard.name, reinforcedBoard.description,
+                width: 1, height: 1, prefabPath: reinforcedBoard.prefabPath, iconPath: reinforcedBoard.iconPath,
+                isBoard: true);
+            foreach (var cost in reinforcedBoard.costs)
+            {
+                reinforcedBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
+            }
+            BuildingDefinitions[BuildingType.ReinforcedBoard] = reinforcedBoardBuilding;
+
+            var advancedBoardBuilding = new BuildingDefinition(
+                BuildingType.AdvancedBoard, BuildingCategory.Board, advancedBoard.name, advancedBoard.description,
+                width: 1, height: 1, prefabPath: advancedBoard.prefabPath, iconPath: advancedBoard.iconPath,
+                isBoard: true);
+            foreach (var cost in advancedBoard.costs)
+            {
+                advancedBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
+            }
+            BuildingDefinitions[BuildingType.AdvancedBoard] = advancedBoardBuilding;
+        }
+
         private static void InitializeBuildings()
         {
             var emergencyShelter = new BuildingDefinition(
@@ -41,7 +143,7 @@ namespace GameCore
 
             var miningPlatform = new BuildingDefinition(
                 BuildingType.MiningPlatform, BuildingCategory.Production, "太空漂浮采矿平台", "自动开采太空矿石和垃圾",
-                width: 1, height: 1, powerConsumption: 10, powerProduction: 0,
+                width: 2, height: 2, functionalAreaWidth: 2, functionalAreaHeight: 2, powerConsumption: 10, powerProduction: 0,
                 prefabPath: "Prefabs/Buildings/MiningPlatform", iconPath: "Icons/Buildings/MiningPlatform");
             miningPlatform.costs.Add(new BuildingCost(ResourceType.SpaceOre, 20));
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
@@ -70,7 +172,7 @@ namespace GameCore
 
             var furnaceRefinery = new BuildingDefinition(
                 BuildingType.FurnaceRefinery, BuildingCategory.Production, "熔炉精炼厂", "矿石精炼成合金锭",
-                width: 2, height: 1, powerConsumption: 15, powerProduction: 0,
+                width: 2, height: 2, powerConsumption: 15, powerProduction: 0,
                 isProductionBuilding: true, prefabPath: "Prefabs/Buildings/FurnaceRefinery", iconPath: "Icons/Buildings/FurnaceRefinery");
             furnaceRefinery.costs.Add(new BuildingCost(ResourceType.SpaceOre, 40));
             BuildingDefinitions[BuildingType.FurnaceRefinery] = furnaceRefinery;
@@ -152,6 +254,11 @@ namespace GameCore
             return BuildingDefinitions.TryGetValue(type, out var def) ? def : null;
         }
 
+        public static BoardDefinition GetBoard(BoardType type)
+        {
+            return BoardDefinitions.TryGetValue(type, out var def) ? def : null;
+        }
+
         public static RecipeDefinition GetRecipe(string key)
         {
             return RecipeDefinitions.TryGetValue(key, out var def) ? def : null;
@@ -183,6 +290,19 @@ namespace GameCore
             return result;
         }
 
+        public static List<BoardDefinition> GetBoardsByCategory(BuildingCategory category)
+        {
+            var result = new List<BoardDefinition>();
+            foreach (var board in BoardDefinitions.Values)
+            {
+                if (board.category == category)
+                {
+                    result.Add(board);
+                }
+            }
+            return result;
+        }
+
         public static string GetCategoryName(BuildingCategory category)
         {
             switch (category)
@@ -193,6 +313,7 @@ namespace GameCore
                 case BuildingCategory.Logistics: return "物流设施";
                 case BuildingCategory.Storage: return "仓储设施";
                 case BuildingCategory.Special: return "特殊设施";
+                case BuildingCategory.Board: return "基础平台";
                 default: return "未知";
             }
         }

@@ -8,8 +8,6 @@ namespace UI
     public class BuildingCategoryPanel : MonoBehaviour
     {
         [Header("UI Components")]
-        public Button categoryButton;
-        public Text categoryNameText;
         public Image categoryIcon;
         public Transform contentContainer;
         public GameObject buildingIconPrefab;
@@ -33,22 +31,12 @@ namespace UI
 
         private void Start()
         {
-            if (categoryButton != null)
-            {
-                categoryButton.onClick.AddListener(ToggleExpand);
-            }
-
             InitializeCategory();
         }
 
         public void InitializeCategory()
         {
             buildingsInCategory = DataConfig.GetBuildingsByCategory(category);
-
-            if (categoryNameText != null)
-            {
-                categoryNameText.text = DataConfig.GetCategoryName(category);
-            }
 
             GenerateBuildingIcons();
             UpdatePagination();

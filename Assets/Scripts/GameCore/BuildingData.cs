@@ -22,17 +22,23 @@ namespace GameCore
         public string description;
         public int width;
         public int height;
+        public int functionalAreaWidth;
+        public int functionalAreaHeight;
+        public BuildDirection direction;
         public int powerConsumption;
         public int powerProduction;
         public int storageCapacity;
         public bool isProductionBuilding;
+        public bool isBoard;
         public List<BuildingCost> costs;
         public string prefabPath;
         public string iconPath;
 
         public BuildingDefinition(BuildingType type, BuildingCategory category, string name, string description, 
-            int width = 1, int height = 1, int powerConsumption = 0, int powerProduction = 0,
-            int storageCapacity = 0, bool isProductionBuilding = false, string prefabPath = "", string iconPath = "")
+            int width = 1, int height = 1, int functionalAreaWidth = 0, int functionalAreaHeight = 0,
+            BuildDirection direction = BuildDirection.North,
+            int powerConsumption = 0, int powerProduction = 0,
+            int storageCapacity = 0, bool isProductionBuilding = false, bool isBoard = false, string prefabPath = "", string iconPath = "")
         {
             this.type = type;
             this.category = category;
@@ -40,10 +46,14 @@ namespace GameCore
             this.description = description;
             this.width = width;
             this.height = height;
+            this.functionalAreaWidth = functionalAreaWidth;
+            this.functionalAreaHeight = functionalAreaHeight;
+            this.direction = direction;
             this.powerConsumption = powerConsumption;
             this.powerProduction = powerProduction;
             this.storageCapacity = storageCapacity;
             this.isProductionBuilding = isProductionBuilding;
+            this.isBoard = isBoard;
             this.prefabPath = prefabPath;
             this.iconPath = iconPath;
             this.costs = new List<BuildingCost>();

@@ -9,10 +9,10 @@ namespace GridSystem
 
         [Header("Grid Settings")]
         public Camera mainCamera;
-        public float baseGridSize = 1f;
+        public float cellSize = 1f;
         public Color gridColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
-        public float baseLineWidth = 0.05f;
-        public float lineWidthScale = 0.5f;
+        public float baseLineWidth = 0.01f;
+        public float lineWidthScale = 0.3f;
         public int linesMargin = 10;
 
         [Header("LOD Settings")]
@@ -42,7 +42,6 @@ namespace GridSystem
             }
             CreateGridMaterial();
             lineRenderers = new List<LineRenderer>();
-            currentGridSize = baseGridSize;
             
             SetGridVisible(false);
         }
@@ -79,7 +78,7 @@ namespace GridSystem
             float cameraSize = GetCameraSize();
             float targetGridSpacing = cameraSize / lodThresholdFactor;
             
-            float bestStep = baseGridSize;
+            float bestStep = cellSize;
             foreach (float step in gridStepSizes)
             {
                 if (step >= targetGridSpacing)
@@ -94,7 +93,7 @@ namespace GridSystem
 
         private float CalculateLineWidth()
         {
-            float scaleFactor = currentGridSize / baseGridSize;
+            float scaleFactor = currentGridSize / cellSize;
             return baseLineWidth * Mathf.Pow(scaleFactor, lineWidthScale);
         }
 
@@ -138,6 +137,7 @@ namespace GridSystem
         {
             if (mainCamera == null) return;
 
+            float baseSize = cellSize;
             currentGridSize = CalculateGridSize();
             float currentLineWidth = CalculateLineWidth();
 
@@ -146,7 +146,7 @@ namespace GridSystem
 
             float halfViewSize = cameraSize * 1.5f;
 
-            int linesNeededHorizontal = Mathf.CeilToInt(2 * halfViewSize / currentGridSize) + linesMargin;
+            int linesNeededHorizontal = Mathf.CeilToInt(2 * halfViewSize / baseSize) + linesMargin;
             int linesNeededVertical = linesNeededHorizontal;
             int totalLinesNeeded = linesNeededHorizontal + linesNeededVertical;
 
@@ -158,14 +158,14 @@ namespace GridSystem
                 lr.endWidth = currentLineWidth;
             }
 
-            float startY = Mathf.Floor((cameraPos.y - halfViewSize) / currentGridSize) * currentGridSize;
-            float startX = Mathf.Floor((cameraPos.x - halfViewSize) / currentGridSize) * currentGridSize;
+            float startY = Mathf.Floor(cameraPos.y / baseSize - halfViewSize / baseSize) * baseSize;
+            float startX = Mathf.Floor(cameraPos.x / baseSize - halfViewSize / baseSize) * baseSize;
 
             int lineIndex = 0;
 
             for (int i = 0; i < linesNeededHorizontal; i++)
             {
-                float y = startY + i * currentGridSize;
+                float y = startY + i * baseSize;
                 LineRenderer lr = lineRenderers[lineIndex];
                 lr.SetPosition(0, new Vector3(cameraPos.x - halfViewSize, y, 0));
                 lr.SetPosition(1, new Vector3(cameraPos.x + halfViewSize, y, 0));
@@ -174,7 +174,7 @@ namespace GridSystem
 
             for (int i = 0; i < linesNeededVertical; i++)
             {
-                float x = startX + i * currentGridSize;
+                float x = startX + i * baseSize;
                 LineRenderer lr = lineRenderers[lineIndex];
                 lr.SetPosition(0, new Vector3(x, cameraPos.y - halfViewSize, 0));
                 lr.SetPosition(1, new Vector3(x, cameraPos.y + halfViewSize, 0));

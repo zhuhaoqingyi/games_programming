@@ -108,8 +108,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   iconImage: {fileID: 2553244350256671664}
   buildingNameText: {fileID: 4014824467583753998}
-  selectedIndicator: {fileID: 8024455249053382012}
-  lockedOverlay: {fileID: 3771783212619536898}
+  selectedIndicator: {fileID: 7401752329747923011}
+  lockedOverlay: {fileID: 7689558156212612632}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 0, g: 0.8307626, b: 1, a: 1}
   lockedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}

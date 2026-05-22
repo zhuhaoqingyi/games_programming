@@ -10,10 +10,11 @@ namespace UI
         [Header("UI Components")]
         public Image iconImage;
         public Text buildingNameText;
-        public GameObject selectedIndicator;
-        public Color normalColor = Color.white;
-        public Color selectedColor = Color.yellow;
-        public Color lockedColor = Color.gray;
+        public Image selectedIndicator;
+        public Image lockedOverlay;
+        public Color normalColor = new Color(1f, 1f, 1f);        // 白色
+        public Color selectedColor = new Color(0f, 1f, 1f);       // 青色
+        public Color lockedColor = new Color(0.5f, 0.5f, 0.5f);   // 灰色
 
         [Header("Data")]
         private BuildingDefinition buildingDef;
@@ -42,19 +43,29 @@ namespace UI
                 buildingNameText.text = buildingDef.name;
             }
 
-            if (iconImage != null)
+            if (!string.IsNullOrEmpty(buildingDef.iconPath))
             {
-                if (!string.IsNullOrEmpty(buildingDef.iconPath))
+                Sprite sprite = Resources.Load<Sprite>(buildingDef.iconPath);
+                if (sprite != null)
                 {
-                    Sprite sprite = Resources.Load<Sprite>(buildingDef.iconPath);
-                    if (sprite != null)
+                    if (iconImage != null)
                     {
                         iconImage.sprite = sprite;
                         iconImage.enabled = true;
                     }
+                    if (selectedIndicator != null)
+                    {
+                        selectedIndicator.sprite = sprite;
+                        selectedIndicator.enabled = true;
+                    }
+                    if (lockedOverlay != null)
+                    {
+                        lockedOverlay.sprite = sprite;
+                        lockedOverlay.enabled = true;
+                    }
                 }
-                UpdateIconColor();
             }
+            UpdateIconColor();
         }
 
         public void UpdateAffordability()
@@ -68,29 +79,27 @@ namespace UI
 
         private void UpdateIconColor()
         {
-            if (iconImage == null) return;
-
-            if (isSelected)
-            {
-                iconImage.color = selectedColor;
-            }
-            else if (!canAfford)
-            {
-                iconImage.color = lockedColor;
-            }
-            else
+            if (iconImage != null)
             {
                 iconImage.color = normalColor;
+            }
+
+            if (selectedIndicator != null)
+            {
+                selectedIndicator.color = selectedColor;
+                selectedIndicator.gameObject.SetActive(isSelected);
+            }
+
+            if (lockedOverlay != null)
+            {
+                lockedOverlay.color = lockedColor;
+                lockedOverlay.gameObject.SetActive(!canAfford);
             }
         }
 
         public void SetSelected(bool selected)
         {
             isSelected = selected;
-            if (selectedIndicator != null)
-            {
-                selectedIndicator.SetActive(selected);
-            }
             UpdateIconColor();
         }
 

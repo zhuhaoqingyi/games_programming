@@ -71,34 +71,48 @@ namespace GridSystem
 
         private void CreatePreview()
         {
-            if (previewPrefab != null)
+            var buildingDef = DataConfig.GetBuilding(selectedBuilding);
+            if (buildingDef == null) return;
+
+            // 始终使用默认预览，确保和实际放置完全一致
+            currentPreview = CreateDefaultPreview(buildingDef);
+            
+            Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
             {
-                currentPreview = Instantiate(previewPrefab);
-                currentPreview.name = "BuildingPreview";
-                
-                var buildingDef = DataConfig.GetBuilding(selectedBuilding);
-                if (buildingDef != null)
-                {
-                    Transform visualTransform = currentPreview.transform;
-                    visualTransform.localScale = new Vector3(
-                        buildingDef.width * 0.9f,
-                        buildingDef.height * 0.9f,
-                        0.5f
-                    );
-                }
-                
-                Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
-                if (renderers.Length > 0)
-                {
-                    originalMaterial = renderers[0].material;
-                    originalColor = renderers[0].material.color;
-                }
-                
-                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-                mouseWorldPos.z = 0;
-                UpdatePreviewPosition(mouseWorldPos);
-                UpdatePreviewValidity(mouseWorldPos);
+                originalMaterial = renderers[0].material;
+                originalColor = renderers[0].material.color;
             }
+            
+            Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorldPos.z = 0;
+            UpdatePreviewPosition(mouseWorldPos);
+            UpdatePreviewValidity(mouseWorldPos);
+        }
+
+        private GameObject CreateDefaultPreview(BuildingDefinition buildingDef)
+        {
+            GameObject previewObj = new GameObject("BuildingPreview");
+            
+            GameObject visualObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            visualObj.transform.SetParent(previewObj.transform);
+            
+            visualObj.transform.localPosition = Vector3.zero;
+            visualObj.transform.localScale = new Vector3(
+                buildingDef.width * GridManager.Instance.cellSize * 0.9f,
+                buildingDef.height * GridManager.Instance.cellSize * 0.9f,
+                0.1f
+            );
+
+            Renderer renderer = visualObj.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material mat = new Material(Shader.Find("Unlit/Color"));
+                mat.color = validPlacementColor;
+                renderer.material = mat;
+            }
+
+            return previewObj;
         }
 
         private void DestroyPreview()
@@ -124,9 +138,15 @@ namespace GridSystem
 
         private void UpdatePreviewPosition(Vector3 mouseWorldPos)
         {
+            var buildingDef = DataConfig.GetBuilding(selectedBuilding);
+            if (buildingDef == null) return;
+            
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
-            Vector3 worldPos = GridManager.Instance.GridToWorld(gridPos);
-            worldPos.z = -0.1f;
+            Vector3 worldPos = new Vector3(
+                gridPos.x * GridManager.Instance.cellSize + buildingDef.width * GridManager.Instance.cellSize / 2f,
+                gridPos.y * GridManager.Instance.cellSize + buildingDef.height * GridManager.Instance.cellSize / 2f,
+                -0.1f
+            );
             
             currentPreview.transform.position = worldPos;
         }
@@ -145,7 +165,7 @@ namespace GridSystem
             }
         }
 
-        private void TryPlaceBuilding()
+        public void TryPlaceBuilding()
         {
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos.z = 0;
@@ -169,6 +189,11 @@ namespace GridSystem
                 {
                     OnBuildingPlaced?.Invoke(gridPos, selectedBuilding);
                 }
+            }
+            else
+            {
+                string reason = GridManager.Instance.GetPlacementFailureReason(gridPos, selectedBuilding);
+                Debug.Log($"[建筑放置失败] {buildingDef?.name ?? "未知建筑"} at ({gridPos.x}, {gridPos.y}): {reason}");
             }
         }
 
