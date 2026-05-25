@@ -43,14 +43,23 @@ namespace GridSystem
         public bool CanPlaceBoard(GridPosition position)
         {
             if (placedBoards.Contains(position))
+            {
+                Debug.Log($"[BoardManager] 放置失败: 位置({position.x}, {position.y})已有board");
                 return false;
+            }
 
             if (placedBoards.Count == 0)
             {
+                Debug.Log($"[BoardManager] 第一个board，可以放置在任意位置({position.x}, {position.y})");
                 return true;
             }
 
-            return HasAdjacentBoard(position);
+            bool hasAdjacent = HasAdjacentBoard(position);
+            if (!hasAdjacent)
+            {
+                Debug.Log($"[BoardManager] 放置失败: 位置({position.x}, {position.y})不与任何board相邻");
+            }
+            return hasAdjacent;
         }
 
         public bool HasAdjacentBoard(GridPosition position)
@@ -110,11 +119,6 @@ namespace GridSystem
             boardTypes[position] = boardType;
             boardObjects[position] = boardObj;
 
-            if (GridManager.Instance != null)
-            {
-                GridManager.Instance.RegisterBoardCell(position);
-            }
-
             Debug.Log($"[BoardManager] 放置太空板: {boardDef.name} at ({position.x}, {position.y})");
             return true;
         }
@@ -133,11 +137,6 @@ namespace GridSystem
             placedBoards.Remove(position);
             boardTypes.Remove(position);
             
-            if (GridManager.Instance != null)
-            {
-                GridManager.Instance.UnregisterBoardCell(position);
-            }
-            
             Debug.Log($"[BoardManager] 移除太空板 at ({position.x}, {position.y})");
             return true;
         }
@@ -147,9 +146,32 @@ namespace GridSystem
             return placedBoards.Contains(position);
         }
 
-        public void RegisterBoardPosition(GridPosition position)
+        public bool RegisterBoardPosition(GridPosition position)
         {
-            placedBoards.Add(position);
+            Debug.Log($"[BoardManager.RegisterBoardPosition] 尝试注册位置({position.x}, {position.y})");
+            
+            if (placedBoards.Contains(position))
+            {
+                Debug.Log($"[BoardManager.RegisterBoardPosition] 失败: 位置({position.x}, {position.y})已有board");
+                return false;
+            }
+
+            if (placedBoards.Count == 0)
+            {
+                Debug.Log($"[BoardManager.RegisterBoardPosition] 第一个board，允许注册");
+                placedBoards.Add(position);
+                return true;
+            }
+
+            if (HasAdjacentBoard(position))
+            {
+                Debug.Log($"[BoardManager.RegisterBoardPosition] 与已有board相邻，允许注册");
+                placedBoards.Add(position);
+                return true;
+            }
+
+            Debug.Log($"[BoardManager.RegisterBoardPosition] 失败: 位置({position.x}, {position.y})不与任何board相邻");
+            return false;
         }
 
         public void UnregisterBoardPosition(GridPosition position)

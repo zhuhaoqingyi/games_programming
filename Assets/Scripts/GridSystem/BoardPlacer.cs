@@ -166,6 +166,8 @@ namespace GridSystem
             mouseWorldPos.z = 0;
             
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
+            Debug.Log($"[BoardPlacer.TryPlaceBoard] 尝试放置board at 网格坐标({gridPos.x}, {gridPos.y})");
+            
             var boardDef = DataConfig.GetBoard(selectedBoard);
             
             if (boardDef == null) return;
@@ -189,9 +191,13 @@ namespace GridSystem
                 }
             }
             
-            if (BoardManager.Instance.CanPlaceBoard(gridPos))
+            bool canPlace = BoardManager.Instance.CanPlaceBoard(gridPos);
+            Debug.Log($"[BoardPlacer.TryPlaceBoard] CanPlaceBoard结果: {canPlace}");
+            
+            if (canPlace)
             {
                 bool placed = BoardManager.Instance.PlaceBoard(gridPos, selectedBoard);
+                Debug.Log($"[BoardPlacer.TryPlaceBoard] PlaceBoard结果: {placed}");
                 if (placed)
                 {
                     OnBoardPlaced?.Invoke(gridPos, selectedBoard);

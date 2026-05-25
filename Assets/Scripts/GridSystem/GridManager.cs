@@ -23,11 +23,17 @@ namespace GridSystem
         [Header("References")]
         public Transform buildingsContainer;
 
+        [Header("Board Settings")]
+        public Color boardColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+        public Color boardHighlightColor = new Color(0.5f, 0.5f, 0.5f, 0.9f);
+        public Color boardInvalidColor = new Color(0.3f, 0.1f, 0.1f, 0.8f);
+
         private HashSet<GridPosition> gridCells = new HashSet<GridPosition>();
         private HashSet<GridPosition> boardCells = new HashSet<GridPosition>();
         private HashSet<GridPosition> functionalAreaCells = new HashSet<GridPosition>();
         private Dictionary<GridPosition, BuildingType> placedBuildings = new Dictionary<GridPosition, BuildingType>();
         private Dictionary<GridPosition, GameObject> placedBuildingObjects = new Dictionary<GridPosition, GameObject>();
+        private Dictionary<GridPosition, BoardType> boardTypes = new Dictionary<GridPosition, BoardType>();
 
         private void Awake()
         {
@@ -105,6 +111,30 @@ namespace GridSystem
 
                     if (!buildingDef.isBoard && !boardCells.Contains(checkPos))
                         return false;
+                }
+            }
+
+            if (buildingDef.isBoard)
+            {
+                for (int dx = 0; dx < buildingDef.width; dx++)
+                {
+                    for (int dy = 0; dy < buildingDef.height; dy++)
+                    {
+                        GridPosition checkPos = position.Offset(dx, dy);
+                        
+                        if (boardCells.Contains(checkPos))
+                        {
+                            return false;
+                        }
+                        
+                        if (boardCells.Count > 0)
+                        {
+                            if (!HasAdjacentBoard(checkPos))
+                            {
+                                return false;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -238,15 +268,16 @@ namespace GridSystem
                     if (buildingDef.isBoard)
                     {
                         boardCells.Add(cellPos);
+                        if (buildingType == BuildingType.BasicBoard)
+                            boardTypes[cellPos] = BoardType.BasicBoard;
+                        else if (buildingType == BuildingType.ReinforcedBoard)
+                            boardTypes[cellPos] = BoardType.ReinforcedBoard;
+                        else if (buildingType == BuildingType.AdvancedBoard)
+                            boardTypes[cellPos] = BoardType.AdvancedBoard;
                     }
                     else
                     {
                         gridCells.Add(cellPos);
-                    }
-                    
-                    if (buildingDef.isBoard && BoardManager.Instance != null)
-                    {
-                        BoardManager.Instance.RegisterBoardPosition(cellPos);
                     }
                 }
             }
@@ -362,6 +393,7 @@ namespace GridSystem
                     if (buildingDef.isBoard)
                     {
                         boardCells.Remove(cellPos);
+                        boardTypes.Remove(cellPos);
                     }
                     else
                     {
@@ -427,19 +459,56 @@ namespace GridSystem
             return pos.x >= 0 && pos.x < gridWidth && pos.y >= 0 && pos.y < gridHeight;
         }
 
-        public void RegisterBoardCell(GridPosition position)
-        {
-            boardCells.Add(position);
-        }
-
-        public void UnregisterBoardCell(GridPosition position)
-        {
-            boardCells.Remove(position);
-        }
-
         public bool HasBoardAt(GridPosition position)
         {
             return boardCells.Contains(position);
+        }
+
+        public bool HasAdjacentBoard(GridPosition position)
+        {
+            GridPosition[] neighbors = new GridPosition[]
+            {
+                position.Offset(-1, 0),
+                position.Offset(1, 0),
+                position.Offset(0, -1),
+                position.Offset(0, 1)
+            };
+
+            foreach (var neighbor in neighbors)
+            {
+                if (boardCells.Contains(neighbor))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool CanPlaceBoard(GridPosition position)
+        {
+            if (boardCells.Contains(position))
+            {
+                return false;
+            }
+
+            if (boardCells.Count == 0)
+            {
+                return true;
+            }
+
+            return HasAdjacentBoard(position);
+        }
+
+        public BoardType GetBoardAt(GridPosition position)
+        {
+            boardTypes.TryGetValue(position, out var type);
+            return type;
+        }
+
+        public HashSet<GridPosition> GetAllBoardPositions()
+        {
+            return new HashSet<GridPosition>(boardCells);
         }
 
         public BuildingType GetBuildingAt(GridPosition pos)

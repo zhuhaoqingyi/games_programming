@@ -11,6 +11,7 @@ namespace GridSystem
         public GameObject previewPrefab;
         public Color validPlacementColor = new Color(1f, 1f, 1f, 0.7f);
         public Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.7f);
+        public Color firstBoardPlacementColor = new Color(0.2f, 0.8f, 0.2f, 0.7f);
         
         private GameObject currentPreview;
         private BuildingType selectedBuilding = BuildingType.None;
@@ -196,7 +197,26 @@ namespace GridSystem
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             bool isValid = GridManager.Instance.CanPlaceBuilding(gridPos, selectedBuilding);
             
-            Color targetColor = isValid ? validPlacementColor : invalidPlacementColor;
+            Color targetColor;
+            if (!isValid)
+            {
+                targetColor = invalidPlacementColor;
+            }
+            else if (buildingDef.isBoard)
+            {
+                if (GridManager.Instance.GetAllBoardPositions().Count == 0)
+                {
+                    targetColor = firstBoardPlacementColor;
+                }
+                else
+                {
+                    targetColor = validPlacementColor;
+                }
+            }
+            else
+            {
+                targetColor = validPlacementColor;
+            }
             
             Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
