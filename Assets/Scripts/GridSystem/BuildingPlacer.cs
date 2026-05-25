@@ -18,6 +18,8 @@ namespace GridSystem
         private Material originalMaterial;
         private Color originalColor;
 
+        private BuildDirection currentRotation = BuildDirection.North;
+
         public delegate void BuildingPlaced(GridPosition position, BuildingType type);
         public event BuildingPlaced OnBuildingPlaced;
 
@@ -48,6 +50,10 @@ namespace GridSystem
                 {
                     CancelPlacement();
                 }
+                else if (Input.GetKeyDown(KeyCode.R))
+                {
+                    RotateBuilding();
+                }
             }
             else if (Input.GetMouseButtonDown(1))
             {
@@ -55,10 +61,35 @@ namespace GridSystem
             }
         }
 
+        private void RotateBuilding()
+        {
+            currentRotation = (BuildDirection)((int)currentRotation + 1);
+            if ((int)currentRotation > 3)
+            {
+                currentRotation = BuildDirection.North;
+            }
+
+            var buildingDef = DataConfig.GetBuilding(selectedBuilding);
+            if (buildingDef != null)
+            {
+                buildingDef.direction = currentRotation;
+                Debug.Log($"[BuildingPlacer] 建筑旋转: {buildingDef.name} 方向 -> {currentRotation}");
+                UpdatePreviewPosition(mainCamera.ScreenToWorldPoint(Input.mousePosition));
+                UpdatePreviewValidity(mainCamera.ScreenToWorldPoint(Input.mousePosition));
+            }
+        }
+
         public void SelectBuilding(BuildingType buildingType)
         {
             selectedBuilding = buildingType;
             isPlacing = true;
+
+            var def = DataConfig.GetBuilding(buildingType);
+            if (def != null)
+            {
+                currentRotation = def.direction;
+            }
+
             CreatePreview();
         }
 
@@ -73,6 +104,8 @@ namespace GridSystem
         {
             var buildingDef = DataConfig.GetBuilding(selectedBuilding);
             if (buildingDef == null) return;
+
+            buildingDef.direction = currentRotation;
 
             // 始终使用默认预览，确保和实际放置完全一致
             currentPreview = CreateDefaultPreview(buildingDef);
@@ -141,6 +174,8 @@ namespace GridSystem
             var buildingDef = DataConfig.GetBuilding(selectedBuilding);
             if (buildingDef == null) return;
             
+            buildingDef.direction = currentRotation;
+
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             Vector3 worldPos = new Vector3(
                 gridPos.x * GridManager.Instance.cellSize + buildingDef.width * GridManager.Instance.cellSize / 2f,
@@ -153,6 +188,11 @@ namespace GridSystem
 
         private void UpdatePreviewValidity(Vector3 mouseWorldPos)
         {
+            var buildingDef = DataConfig.GetBuilding(selectedBuilding);
+            if (buildingDef == null) return;
+
+            buildingDef.direction = currentRotation;
+
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             bool isValid = GridManager.Instance.CanPlaceBuilding(gridPos, selectedBuilding);
             
@@ -173,7 +213,11 @@ namespace GridSystem
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             var buildingDef = DataConfig.GetBuilding(selectedBuilding);
             
-            if (buildingDef != null && GameManager.Instance != null)
+            if (buildingDef == null) return;
+
+            buildingDef.direction = currentRotation;
+            
+            if (GameManager.Instance != null)
             {
                 if (!buildingDef.CanAfford(GameManager.Instance.GetAllResources()))
                 {
@@ -193,7 +237,7 @@ namespace GridSystem
             else
             {
                 string reason = GridManager.Instance.GetPlacementFailureReason(gridPos, selectedBuilding);
-                Debug.Log($"[建筑放置失败] {buildingDef?.name ?? "未知建筑"} at ({gridPos.x}, {gridPos.y}): {reason}");
+                Debug.Log($"[建筑放置失败] {buildingDef.name} at ({gridPos.x}, {gridPos.y}): {reason}");
             }
         }
 

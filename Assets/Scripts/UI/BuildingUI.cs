@@ -29,6 +29,10 @@ namespace UI
         public Text tooltipCost;
         public Text tooltipStats;
         public RectTransform tooltipRect;
+        public CanvasGroup tooltipCanvasGroup;
+
+        [Header("Tooltip Animation")]
+        public float tooltipFadeDuration = 0.2f;
 
         [Header("Building Placer")]
         public BuildingPlacer buildingPlacer;
@@ -168,7 +172,32 @@ namespace UI
 
         public void SelectBuilding(BuildingIconButton button)
         {
-            DeselectAll();
+            Debug.Log($"[BuildingUI] 点击建筑按钮: {button.BuildingDef?.name ?? "Unknown"}");
+
+            if (button.BuildingDef == null)
+            {
+                Debug.LogWarning("[BuildingUI] 无法选中 - BuildingDef为空");
+                return;
+            }
+
+            if (!button.BuildingDef.CanAfford(GameManager.Instance?.GetAllResources() ?? new Dictionary<ResourceType, int>()))
+            {
+                Debug.LogWarning($"[BuildingUI] 无法选中 {button.BuildingDef.name} - 资源不足");
+                return;
+            }
+
+            if (isBuildingMode && selectedButton != null && selectedButton.BuildingDef?.type == button.BuildingDef.type)
+            {
+                Debug.Log($"[BuildingUI] 重复点击同一建筑 {button.BuildingDef.name}，取消当前放置模式");
+                CancelBuildingMode();
+                return;
+            }
+
+            if (isBuildingMode)
+            {
+                Debug.Log($"[BuildingUI] 已在建筑模式中，先取消当前模式再选中新建筑");
+                CancelBuildingMode();
+            }
 
             selectedButton = button;
             selectedButton.SetSelected(true);
@@ -335,7 +364,7 @@ namespace UI
                 Vector2 localPoint;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     tooltipRect.parent as RectTransform,
-                    screenPosition,
+                    new Vector2(0, Screen.height),
                     null,
                     out localPoint
                 );

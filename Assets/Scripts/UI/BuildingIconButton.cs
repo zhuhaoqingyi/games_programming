@@ -12,6 +12,8 @@ namespace UI
         public Text buildingNameText;
         public Image selectedIndicator;
         public Image lockedOverlay;
+
+        [Header("Colors")]
         public Color normalColor = new Color(1f, 1f, 1f);        // 白色
         public Color selectedColor = new Color(0f, 1f, 1f);       // 青色
         public Color lockedColor = new Color(0.5f, 0.5f, 0.5f);   // 灰色
@@ -20,9 +22,16 @@ namespace UI
         private BuildingDefinition buildingDef;
         private bool isSelected;
         private bool canAfford;
+        private bool isTooltipVisible;
+
+        [Header("Tooltip Settings")]
+        public float tooltipShowDelay = 0.3f;
+        private float mouseEnterTime;
+        private bool isMouseOver;
 
         public BuildingDefinition BuildingDef => buildingDef;
         public bool IsSelected => isSelected;
+        public bool CanAfford => canAfford;
 
         public delegate void OnBuildingSelected(BuildingIconButton button);
         public event OnBuildingSelected OnSelected;
@@ -103,6 +112,15 @@ namespace UI
             UpdateIconColor();
         }
 
+        public void Update()
+        {
+            if (isMouseOver && !isTooltipVisible && Time.time - mouseEnterTime >= tooltipShowDelay)
+            {
+                isTooltipVisible = true;
+                BuildingUI.Instance?.ShowBuildingTooltip(buildingDef, transform.position);
+            }
+        }
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (canAfford)
@@ -113,11 +131,14 @@ namespace UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            BuildingUI.Instance?.ShowBuildingTooltip(buildingDef, transform.position);
+            isMouseOver = true;
+            mouseEnterTime = Time.time;
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            isMouseOver = false;
+            isTooltipVisible = false;
             BuildingUI.Instance?.HideBuildingTooltip();
         }
     }

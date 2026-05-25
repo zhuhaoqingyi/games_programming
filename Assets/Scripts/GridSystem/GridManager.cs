@@ -24,6 +24,7 @@ namespace GridSystem
         public Transform buildingsContainer;
 
         private HashSet<GridPosition> gridCells = new HashSet<GridPosition>();
+        private HashSet<GridPosition> boardCells = new HashSet<GridPosition>();
         private HashSet<GridPosition> functionalAreaCells = new HashSet<GridPosition>();
         private Dictionary<GridPosition, BuildingType> placedBuildings = new Dictionary<GridPosition, BuildingType>();
         private Dictionary<GridPosition, GameObject> placedBuildingObjects = new Dictionary<GridPosition, GameObject>();
@@ -102,7 +103,7 @@ namespace GridSystem
                     if (functionalAreaCells.Contains(checkPos))
                         return false;
 
-                    if (BoardManager.Instance != null && !BoardManager.Instance.HasBoardAt(checkPos))
+                    if (!buildingDef.isBoard && !boardCells.Contains(checkPos))
                         return false;
                 }
             }
@@ -233,7 +234,20 @@ namespace GridSystem
                 for (int dy = 0; dy < buildingDef.height; dy++)
                 {
                     GridPosition cellPos = position.Offset(dx, dy);
-                    gridCells.Add(cellPos);
+                    
+                    if (buildingDef.isBoard)
+                    {
+                        boardCells.Add(cellPos);
+                    }
+                    else
+                    {
+                        gridCells.Add(cellPos);
+                    }
+                    
+                    if (buildingDef.isBoard && BoardManager.Instance != null)
+                    {
+                        BoardManager.Instance.RegisterBoardPosition(cellPos);
+                    }
                 }
             }
 
@@ -344,7 +358,15 @@ namespace GridSystem
                 for (int dy = 0; dy < buildingDef.height; dy++)
                 {
                     GridPosition cellPos = position.Offset(dx, dy);
-                    gridCells.Remove(cellPos);
+                    
+                    if (buildingDef.isBoard)
+                    {
+                        boardCells.Remove(cellPos);
+                    }
+                    else
+                    {
+                        gridCells.Remove(cellPos);
+                    }
                 }
             }
 
@@ -403,6 +425,21 @@ namespace GridSystem
         public bool IsValidPosition(GridPosition pos)
         {
             return pos.x >= 0 && pos.x < gridWidth && pos.y >= 0 && pos.y < gridHeight;
+        }
+
+        public void RegisterBoardCell(GridPosition position)
+        {
+            boardCells.Add(position);
+        }
+
+        public void UnregisterBoardCell(GridPosition position)
+        {
+            boardCells.Remove(position);
+        }
+
+        public bool HasBoardAt(GridPosition position)
+        {
+            return boardCells.Contains(position);
         }
 
         public BuildingType GetBuildingAt(GridPosition pos)
@@ -467,7 +504,7 @@ namespace GridSystem
                     if (functionalAreaCells.Contains(checkPos))
                         return $"与功能区域重叠: ({checkPos.x}, {checkPos.y})";
 
-                    if (BoardManager.Instance != null && !BoardManager.Instance.HasBoardAt(checkPos))
+                    if (!buildingDef.isBoard && !boardCells.Contains(checkPos))
                         return $"缺少太空板支撑: ({checkPos.x}, {checkPos.y})";
                 }
             }

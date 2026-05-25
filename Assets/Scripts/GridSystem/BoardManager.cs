@@ -110,6 +110,11 @@ namespace GridSystem
             boardTypes[position] = boardType;
             boardObjects[position] = boardObj;
 
+            if (GridManager.Instance != null)
+            {
+                GridManager.Instance.RegisterBoardCell(position);
+            }
+
             Debug.Log($"[BoardManager] 放置太空板: {boardDef.name} at ({position.x}, {position.y})");
             return true;
         }
@@ -128,6 +133,11 @@ namespace GridSystem
             placedBoards.Remove(position);
             boardTypes.Remove(position);
             
+            if (GridManager.Instance != null)
+            {
+                GridManager.Instance.UnregisterBoardCell(position);
+            }
+            
             Debug.Log($"[BoardManager] 移除太空板 at ({position.x}, {position.y})");
             return true;
         }
@@ -135,6 +145,16 @@ namespace GridSystem
         public bool HasBoardAt(GridPosition position)
         {
             return placedBoards.Contains(position);
+        }
+
+        public void RegisterBoardPosition(GridPosition position)
+        {
+            placedBoards.Add(position);
+        }
+
+        public void UnregisterBoardPosition(GridPosition position)
+        {
+            placedBoards.Remove(position);
         }
 
         public BoardType GetBoardAt(GridPosition position)

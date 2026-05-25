@@ -143,7 +143,8 @@ namespace GameCore
 
             var miningPlatform = new BuildingDefinition(
                 BuildingType.MiningPlatform, BuildingCategory.Production, "太空漂浮采矿平台", "自动开采太空矿石和垃圾",
-                width: 2, height: 2, functionalAreaWidth: 2, functionalAreaHeight: 2, powerConsumption: 10, powerProduction: 0,
+                width: 2, height: 2, functionalAreaWidth: 2, functionalAreaHeight: 2, direction: BuildDirection.East,
+                powerConsumption: 10, powerProduction: 0,
                 prefabPath: "Prefabs/Buildings/MiningPlatform", iconPath: "Icons/Buildings/MiningPlatform");
             miningPlatform.costs.Add(new BuildingCost(ResourceType.SpaceOre, 20));
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
