@@ -30,15 +30,19 @@ namespace GameCore
         public int storageCapacity;
         public bool isProductionBuilding;
         public bool isBoard;
+        public bool canRotate;
         public List<BuildingCost> costs;
         public string prefabPath;
         public string iconPath;
 
+        public Dictionary<BuildDirection, string> directionalPrefabPaths;
+        public Dictionary<BuildDirection, string> directionalIconPaths;
+
         public BuildingDefinition(BuildingType type, BuildingCategory category, string name, string description, 
             int width = 1, int height = 1, int functionalAreaWidth = 0, int functionalAreaHeight = 0,
-            BuildDirection direction = BuildDirection.North,
+            BuildDirection direction = BuildDirection.East,
             int powerConsumption = 0, int powerProduction = 0,
-            int storageCapacity = 0, bool isProductionBuilding = false, bool isBoard = false, string prefabPath = "", string iconPath = "")
+            int storageCapacity = 0, bool isProductionBuilding = false, bool isBoard = false, bool canRotate = false, string prefabPath = "", string iconPath = "")
         {
             this.type = type;
             this.category = category;
@@ -54,9 +58,26 @@ namespace GameCore
             this.storageCapacity = storageCapacity;
             this.isProductionBuilding = isProductionBuilding;
             this.isBoard = isBoard;
+            this.canRotate = canRotate;
             this.prefabPath = prefabPath;
             this.iconPath = iconPath;
             this.costs = new List<BuildingCost>();
+            this.directionalPrefabPaths = new Dictionary<BuildDirection, string>();
+            this.directionalIconPaths = new Dictionary<BuildDirection, string>();
+        }
+
+        public string GetPrefabPath(BuildDirection direction)
+        {
+            if (directionalPrefabPaths.TryGetValue(direction, out string path) && !string.IsNullOrEmpty(path))
+                return path;
+            return prefabPath;
+        }
+
+        public string GetIconPath(BuildDirection direction)
+        {
+            if (directionalIconPaths.TryGetValue(direction, out string path) && !string.IsNullOrEmpty(path))
+                return path;
+            return iconPath;
         }
 
         public bool HasCost()

@@ -144,9 +144,13 @@ namespace GameCore
             var miningPlatform = new BuildingDefinition(
                 BuildingType.MiningPlatform, BuildingCategory.Production, "太空漂浮采矿平台", "自动开采太空矿石和垃圾",
                 width: 2, height: 2, functionalAreaWidth: 2, functionalAreaHeight: 2, direction: BuildDirection.East,
-                powerConsumption: 10, powerProduction: 0,
+                powerConsumption: 10, powerProduction: 0, canRotate: true,
                 prefabPath: "Prefabs/Buildings/MiningPlatform", iconPath: "Icons/Buildings/MiningPlatform");
             miningPlatform.costs.Add(new BuildingCost(ResourceType.SpaceOre, 20));
+            miningPlatform.directionalPrefabPaths[BuildDirection.East] = "Prefabs/Buildings/MiningPlatform1";
+            miningPlatform.directionalPrefabPaths[BuildDirection.South] = "Prefabs/Buildings/MiningPlatform2";
+            miningPlatform.directionalPrefabPaths[BuildDirection.West] = "Prefabs/Buildings/MiningPlatform3";
+            miningPlatform.directionalPrefabPaths[BuildDirection.North] = "Prefabs/Buildings/MiningPlatform4";
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
 
             var nuclearReactor = new BuildingDefinition(
@@ -180,7 +184,7 @@ namespace GameCore
 
             var partAssembly = new BuildingDefinition(
                 BuildingType.PartAssembly, BuildingCategory.Production, "零件组装厂", "合金锭制成机械零件",
-                width: 2, height: 1, powerConsumption: 20, powerProduction: 0,
+                width: 3, height: 3, powerConsumption: 20, powerProduction: 0,
                 isProductionBuilding: true, prefabPath: "Prefabs/Buildings/PartAssembly", iconPath: "Icons/Buildings/PartAssembly");
             partAssembly.costs.Add(new BuildingCost(ResourceType.AlloyIngot, 30));
             partAssembly.costs.Add(new BuildingCost(ResourceType.SpaceDebris, 20));
@@ -302,6 +306,11 @@ namespace GameCore
                 }
             }
             return result;
+        }
+
+        public static Dictionary<ResourceType, ResourceDefinition> GetAllResources()
+        {
+            return ResourceDefinitions;
         }
 
         public static string GetCategoryName(BuildingCategory category)

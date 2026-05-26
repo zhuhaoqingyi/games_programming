@@ -16,6 +16,7 @@ namespace GameCore
         None,
         EmergencyShelter,
         MiningPlatform,
+        Thruster,
         NuclearReactor,
         SolarArray,
         StorageDock,
@@ -59,9 +60,9 @@ namespace GameCore
 
     public enum BuildDirection
     {
-        North,
-        South,
         East,
-        West
+        South,
+        West,
+        North
     }
 }

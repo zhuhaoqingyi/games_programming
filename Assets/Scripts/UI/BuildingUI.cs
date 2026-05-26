@@ -38,8 +38,15 @@ namespace UI
         public BuildingPlacer buildingPlacer;
         public Camera mainCamera;
 
+        [Header("Delete Mode")]
+        public GameObject deleteModeButton;
+        public Text deleteModeButtonText;
+        public Color deleteModeActiveColor = new Color(1f, 0.3f, 0.3f);
+        public Color deleteModeInactiveColor = Color.white;
+
         [Header("Settings")]
         public KeyCode toggleKey = KeyCode.B;
+        public KeyCode deleteModeToggleKey = KeyCode.X;
         public float scrollSensitivity = 1f;
 
         private BuildingIconButton selectedButton;
@@ -63,6 +70,20 @@ namespace UI
         {
             InitializePanels();
             HideBuildingTooltip();
+            InitializeDeleteModeButton();
+            
+            if (buildingPlacer != null)
+            {
+                buildingPlacer.OnDeleteModeChanged += OnDeleteModeChanged;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (buildingPlacer != null)
+            {
+                buildingPlacer.OnDeleteModeChanged -= OnDeleteModeChanged;
+            }
         }
 
         private void Update()
@@ -130,6 +151,11 @@ namespace UI
             else if (isBuildingMode && Input.GetMouseButtonDown(1))
             {
                 CancelBuildingMode();
+            }
+
+            if (Input.GetKeyDown(deleteModeToggleKey))
+            {
+                ToggleDeleteMode();
             }
         }
 
@@ -387,6 +413,56 @@ namespace UI
                 if (panel != null)
                 {
                     panel.Refresh();
+                }
+            }
+        }
+
+        private void InitializeDeleteModeButton()
+        {
+            if (deleteModeButton != null)
+            {
+                Button btn = deleteModeButton.GetComponent<Button>();
+                if (btn == null)
+                {
+                    btn = deleteModeButton.AddComponent<Button>();
+                }
+                
+                btn.onClick.AddListener(ToggleDeleteMode);
+                
+                UpdateDeleteModeButtonText();
+            }
+        }
+
+        private void ToggleDeleteMode()
+        {
+            if (buildingPlacer != null)
+            {
+                buildingPlacer.ToggleDeleteMode();
+            }
+        }
+
+        private void OnDeleteModeChanged(bool isDeleteMode)
+        {
+            UpdateDeleteModeButtonText();
+            Debug.Log($"[BuildingUI] 删除模式: {(isDeleteMode ? "开启" : "关闭")}");
+        }
+
+        private void UpdateDeleteModeButtonText()
+        {
+            if (deleteModeButtonText != null)
+            {
+                bool isDeleteMode = buildingPlacer != null && buildingPlacer.IsDeleteMode;
+                deleteModeButtonText.text = isDeleteMode ? "退出删除" : "删除模式";
+                deleteModeButtonText.color = isDeleteMode ? deleteModeActiveColor : deleteModeInactiveColor;
+            }
+
+            if (deleteModeButton != null)
+            {
+                Image btnImage = deleteModeButton.GetComponent<Image>();
+                if (btnImage != null)
+                {
+                    bool isDeleteMode = buildingPlacer != null && buildingPlacer.IsDeleteMode;
+                    btnImage.color = isDeleteMode ? new Color(1f, 0.3f, 0.3f, 1f) : Color.white;
                 }
             }
         }
