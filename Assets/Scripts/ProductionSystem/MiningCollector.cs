@@ -1,5 +1,6 @@
 using UnityEngine;
 using GameResources;
+using GameCore;
 
 namespace ProductionSystem
 {
@@ -16,7 +17,6 @@ namespace ProductionSystem
 
         public void Initialize(MiningMachine machine)
         {
-            Debug.Log("[MiningCollector] 已初始化");
         }
 
         private void SetupRigidbody()
@@ -25,7 +25,6 @@ namespace ProductionSystem
             if (rb == null)
             {
                 rb = gameObject.AddComponent<Rigidbody2D>();
-                Debug.Log("[MiningCollector] 自动添加 Rigidbody2D");
             }
             rb.isKinematic = true;
             rb.gravityScale = 0;
@@ -37,29 +36,25 @@ namespace ProductionSystem
             if (collectorCollider == null)
             {
                 collectorCollider = gameObject.AddComponent<BoxCollider2D>();
-                Debug.Log("[MiningCollector] 自动添加 BoxCollider2D");
             }
             collectorCollider.isTrigger = true;
-            Debug.Log($"[MiningCollector] 碰撞体设置完成，类型: {collectorCollider.GetType().Name}");
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            Debug.Log($"[MiningCollector] 检测到碰撞: {other.gameObject.name}, Tag: {other.tag}");
-            
             SpaceOre ore = other.GetComponent<SpaceOre>();
             if (ore != null && !ore.IsCollected())
             {
-                Debug.Log($"[MiningCollector] 矿石接触，开始采集: {ore.name}");
                 ore.Collect();
-            }
-            else if (ore != null)
-            {
-                Debug.Log($"[MiningCollector] 矿石已被采集: {ore.name}");
-            }
-            else
-            {
-                Debug.Log($"[MiningCollector] 不是矿石对象，尝试获取组件失败");
+                
+                // 增加矿石资源
+                if (GameManager.Instance != null)
+                {
+                    int beforeAmount = GameManager.Instance.GetResourceAmount(ResourceType.SpaceOre);
+                    GameManager.Instance.AddResource(ResourceType.SpaceOre, 10);
+                    int afterAmount = GameManager.Instance.GetResourceAmount(ResourceType.SpaceOre);
+                    Debug.Log($"[MiningCollector] 采集矿石: {beforeAmount} → {afterAmount} (+10)");
+                }
             }
         }
 

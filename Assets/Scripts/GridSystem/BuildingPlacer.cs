@@ -1,6 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
 using GameCore;
 using UI;
+using LogisticsSystem;
 
 namespace GridSystem
 {
@@ -14,8 +16,14 @@ namespace GridSystem
         public Color firstBoardPlacementColor = new Color(0.2f, 0.8f, 0.2f, 0.7f);
         public Color deleteModeColor = new Color(1f, 0.5f, 0f, 0.7f);
         public Color selectedBuildingColor = new Color(1f, 1f, 0f, 0.9f);
+
+        public Color functionalAreaValidColor = new Color(0.3f, 0.6f, 1f, 0.25f);
+        public Color functionalAreaInvalidColor = new Color(1f, 0.2f, 0.2f, 0.25f);
         
         private GameObject currentPreview;
+        private GameObject functionalAreaPreview;
+        private Renderer buildingPreviewRenderer;
+        private Renderer functionalAreaPreviewRenderer;
         private BuildingType selectedBuilding = BuildingType.None;
         private bool isPlacing = false;
         private Material originalMaterial;
@@ -111,7 +119,7 @@ namespace GridSystem
             currentVal = (currentVal + 1) % 4;
             currentRotation = (BuildDirection)currentVal;
 
-            Debug.Log($"[BuildingPlacer] 建筑旋转: 方向 -> {currentRotation}");
+            Debug.Log($"[BuildingPlacer] Building rotation: direction -> {currentRotation}");
             UpdatePreviewPosition(mainCamera.ScreenToWorldPoint(Input.mousePosition));
             UpdatePreviewValidity(mainCamera.ScreenToWorldPoint(Input.mousePosition));
             UpdatePreviewScale();
@@ -149,7 +157,7 @@ namespace GridSystem
             }
             
             OnDeleteModeChanged?.Invoke(isDeleteMode);
-            Debug.Log($"[BuildingPlacer] 删除模式: {(isDeleteMode ? "开启" : "关闭")}");
+            Debug.Log($"[BuildingPlacer] Delete mode: {(isDeleteMode ? "ON" : "OFF")}");
         }
 
         public void SetDeleteMode(bool enabled)
@@ -167,12 +175,7 @@ namespace GridSystem
 
             currentPreview = CreateDefaultPreview(buildingDef);
             
-            Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
-            if (renderers.Length > 0)
-            {
-                originalMaterial = renderers[0].material;
-                originalColor = renderers[0].material.color;
-            }
+            CreateFunctionalAreaPreview(buildingDef);
             
             Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             mouseWorldPos.z = 0;
@@ -214,6 +217,8 @@ namespace GridSystem
                     0.1f
                 );
             }
+
+            UpdateFunctionalAreaPreviewScale(buildingDef);
         }
 
         private GameObject CreateDefaultPreview(BuildingDefinition buildingDef)
@@ -230,15 +235,93 @@ namespace GridSystem
                 0.1f
             );
 
-            Renderer renderer = visualObj.GetComponent<Renderer>();
-            if (renderer != null)
+            buildingPreviewRenderer = visualObj.GetComponent<Renderer>();
+            if (buildingPreviewRenderer != null)
             {
                 Material mat = new Material(Shader.Find("Unlit/Color"));
                 mat.color = validPlacementColor;
-                renderer.material = mat;
+                buildingPreviewRenderer.material = mat;
             }
 
             return previewObj;
+        }
+
+        private void CreateFunctionalAreaPreview(BuildingDefinition buildingDef)
+        {
+            Debug.Log($"[BuildingPlacer] CreateFunctionalAreaPreview called. FA Width={buildingDef.functionalAreaWidth}, FA Height={buildingDef.functionalAreaHeight}");
+            
+            if (buildingDef.functionalAreaWidth <= 0 || buildingDef.functionalAreaHeight <= 0)
+            {
+                Debug.Log("[BuildingPlacer] Functional area dimensions are zero or negative, skipping creation.");
+                return;
+            }
+
+            functionalAreaPreview = new GameObject("FunctionalAreaPreview");
+            functionalAreaPreview.transform.SetParent(currentPreview.transform);
+            functionalAreaPreview.transform.localPosition = Vector3.zero;
+
+            GameObject faVisual = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            faVisual.transform.SetParent(functionalAreaPreview.transform);
+            faVisual.transform.localPosition = Vector3.zero;
+
+            functionalAreaPreviewRenderer = faVisual.GetComponent<Renderer>();
+            if (functionalAreaPreviewRenderer != null)
+            {
+                Material faMat = new Material(Shader.Find("Unlit/Color"));
+                faMat.color = functionalAreaValidColor;
+                functionalAreaPreviewRenderer.material = faMat;
+                Debug.Log($"[BuildingPlacer] Functional area preview created, color set to {functionalAreaValidColor}");
+            }
+            else
+            {
+                Debug.LogError("[BuildingPlacer] Could not get Renderer from functional area visual!");
+            }
+
+            Collider faCollider = faVisual.GetComponent<Collider>();
+            if (faCollider != null)
+            {
+                Destroy(faCollider);
+            }
+
+            UpdateFunctionalAreaPreviewScale(buildingDef);
+        }
+
+        private void UpdateFunctionalAreaPreviewScale(BuildingDefinition buildingDef)
+        {
+            if (functionalAreaPreview == null) return;
+            if (buildingDef.functionalAreaWidth <= 0 || buildingDef.functionalAreaHeight <= 0) return;
+
+            int faW = buildingDef.functionalAreaWidth;
+            int faH = buildingDef.functionalAreaHeight;
+
+            Vector3 offset = Vector3.zero;
+            switch (currentRotation)
+            {
+                case BuildDirection.East:
+                    offset = new Vector3(buildingDef.width * GridManager.Instance.cellSize, 0, 0);
+                    break;
+                case BuildDirection.West:
+                    offset = new Vector3(-faW * GridManager.Instance.cellSize, 0, 0);
+                    break;
+                case BuildDirection.North:
+                    offset = new Vector3(0, faH * GridManager.Instance.cellSize, 0);
+                    break;
+                case BuildDirection.South:
+                    offset = new Vector3(0, -buildingDef.height * GridManager.Instance.cellSize, 0);
+                    break;
+            }
+
+            functionalAreaPreview.transform.localPosition = offset;
+
+            Transform faVisual = functionalAreaPreview.transform.GetChild(0);
+            if (faVisual != null)
+            {
+                faVisual.localScale = new Vector3(
+                    faW * GridManager.Instance.cellSize * 0.9f,
+                    faH * GridManager.Instance.cellSize * 0.9f,
+                    0.05f
+                );
+            }
         }
 
         private void DestroyPreview()
@@ -246,9 +329,11 @@ namespace GridSystem
             if (currentPreview != null)
             {
                 Destroy(currentPreview);
-                currentPreview = null;
-                originalMaterial = null;
             }
+            currentPreview = null;
+            functionalAreaPreview = null;
+            buildingPreviewRenderer = null;
+            functionalAreaPreviewRenderer = null;
         }
 
         private void HandlePlacementPreview()
@@ -288,31 +373,36 @@ namespace GridSystem
             GridPosition gridPos = GridManager.Instance.WorldToGrid(mouseWorldPos);
             bool isValid = GridManager.Instance.CanPlaceBuildingWithDirection(gridPos, selectedBuilding, currentRotation);
             
-            Color targetColor;
+            Color buildingColor;
             if (!isValid)
             {
-                targetColor = invalidPlacementColor;
+                buildingColor = invalidPlacementColor;
             }
             else if (buildingDef.isBoard)
             {
                 if (GridManager.Instance.GetAllBoardPositions().Count == 0)
                 {
-                    targetColor = firstBoardPlacementColor;
+                    buildingColor = firstBoardPlacementColor;
                 }
                 else
                 {
-                    targetColor = validPlacementColor;
+                    buildingColor = validPlacementColor;
                 }
             }
             else
             {
-                targetColor = validPlacementColor;
+                buildingColor = validPlacementColor;
             }
             
-            Renderer[] renderers = currentPreview.GetComponentsInChildren<Renderer>();
-            foreach (Renderer renderer in renderers)
+            Color faColor = isValid ? functionalAreaValidColor : functionalAreaInvalidColor;
+            
+            if (buildingPreviewRenderer != null)
             {
-                renderer.material.color = targetColor;
+                buildingPreviewRenderer.material.color = buildingColor;
+            }
+            if (functionalAreaPreviewRenderer != null)
+            {
+                functionalAreaPreviewRenderer.material.color = faColor;
             }
         }
 
@@ -330,7 +420,7 @@ namespace GridSystem
             {
                 if (!buildingDef.CanAfford(GameManager.Instance.GetAllResources()))
                 {
-                    Debug.Log("资源不足，无法建造！");
+                    Debug.Log("Insufficient resources to build!");
                     return;
                 }
             }
@@ -347,7 +437,7 @@ namespace GridSystem
             else
             {
                 string reason = GridManager.Instance.GetPlacementFailureReasonWithDirection(gridPos, selectedBuilding, currentRotation);
-                Debug.Log($"[建筑放置失败] {buildingDef.name} at ({gridPos.x}, {gridPos.y}): {reason}");
+                Debug.Log($"[BuildingPlacer] Building placement failed: {buildingDef.name} at ({gridPos.x}, {gridPos.y}): {reason}");
             }
         }
 
@@ -357,11 +447,37 @@ namespace GridSystem
             {
                 BuildingUI.Instance.OnBuildingPlacedSuccess(position, type);
             }
+
+            var buildingDef = DataConfig.GetBuilding(type);
+            if (buildingDef != null)
+            {
+                if (buildingDef.storageCapacity > 0)
+                {
+                    GameManager.Instance?.AddStorageCapacity(buildingDef.storageCapacity);
+                    Debug.Log($"[BuildingPlacer] Storage capacity +{buildingDef.storageCapacity}");
+                }
+
+                PlacedBuilding placed = GridManager.Instance.GetPlacedBuildingAt(position);
+                if (placed != null && placed.GameObject != null)
+                {
+                    ContainerComponent container = placed.GameObject.GetComponentInChildren<ContainerComponent>();
+                    if (container != null)
+                    {
+                        Dictionary<ResourceType, int> capacities = new Dictionary<ResourceType, int>();
+                        foreach (var rc in container.resourceCapacities)
+                        {
+                            capacities[rc.resourceType] = rc.capacity;
+                        }
+                        GameManager.Instance?.AddContainer(capacities, container.GetTotalCapacity());
+                        Debug.Log($"[BuildingPlacer] Container registered with {container.resourceCapacities.Count} resource types");
+                    }
+                }
+            }
         }
 
         private void TryRemoveBuilding(GridPosition originPos)
         {
-            if (originPos.x < 0 || originPos.y < 0) return;
+            if (!GridManager.Instance.HasCell(originPos)) return;
             
             BuildingType buildingType = GridManager.Instance.GetBuildingAt(originPos);
             if (buildingType == BuildingType.None) return;
@@ -369,12 +485,35 @@ namespace GridSystem
             var buildingDef = DataConfig.GetBuilding(buildingType);
             if (buildingDef == null) return;
 
+            PlacedBuilding placed = GridManager.Instance.GetPlacedBuildingAt(originPos);
+            if (placed != null && placed.GameObject != null)
+            {
+                ContainerComponent container = placed.GameObject.GetComponentInChildren<ContainerComponent>();
+                if (container != null)
+                {
+                    Dictionary<ResourceType, int> capacities = new Dictionary<ResourceType, int>();
+                    foreach (var rc in container.resourceCapacities)
+                    {
+                        capacities[rc.resourceType] = rc.capacity;
+                    }
+                    GameManager.Instance?.RemoveContainer(capacities, container.GetTotalCapacity());
+                    Debug.Log($"[BuildingPlacer] Container deregistered");
+                }
+            }
+
+            if (buildingDef.storageCapacity > 0)
+            {
+                GameManager.Instance?.RemoveStorageCapacity(buildingDef.storageCapacity);
+                Debug.Log($"[BuildingPlacer] Storage capacity -{buildingDef.storageCapacity}");
+            }
+
             bool removed = GridManager.Instance.RemoveBuilding(originPos);
             if (removed)
             {
                 RefundResources(buildingDef);
+                GameManager.Instance?.EnforceCapacityLimits();
                 OnBuildingRemoved?.Invoke(originPos, buildingType);
-                Debug.Log($"[BuildingPlacer] 删除建筑: {buildingDef.name}，返还50%资源");
+                Debug.Log($"[BuildingPlacer] Building removed: {buildingDef.name}, refunding 50% resources");
             }
         }
 
@@ -386,7 +525,7 @@ namespace GridSystem
             {
                 int refundAmount = Mathf.CeilToInt(cost.amount * 0.5f);
                 GameManager.Instance.AddResource(cost.resourceType, refundAmount);
-                Debug.Log($"[资源返还] {cost.resourceType}: +{refundAmount}");
+                Debug.Log($"[Resource Refund] {cost.resourceType}: +{refundAmount}");
             }
         }
 
@@ -406,7 +545,7 @@ namespace GridSystem
             selectedBuildingDirection = placed.Direction;
             
             HighlightSelectedBuilding(true);
-            Debug.Log($"[BuildingPlacer] 选中建筑: {buildingDef.name}，按R旋转，右键删除");
+            Debug.Log($"[BuildingPlacer] Building selected: {buildingDef.name}, press R to rotate, right-click to delete");
         }
 
         private void DeselectPlacedBuilding()
@@ -450,7 +589,7 @@ namespace GridSystem
             
             if (!placed.CanRotate)
             {
-                Debug.Log($"[BuildingPlacer] {buildingDef.name} 不支持旋转");
+                Debug.Log($"[BuildingPlacer] {buildingDef.name} does not support rotation");
                 return;
             }
 
@@ -468,11 +607,11 @@ namespace GridSystem
                     selectedBuildingDirection = newDirection;
                 }
                 
-                Debug.Log($"[BuildingPlacer] 建筑旋转成功: {buildingDef.name} -> {newDirection}");
+                Debug.Log($"[BuildingPlacer] Building rotated successfully: {buildingDef.name} -> {newDirection}");
             }
             else
             {
-                Debug.Log($"[BuildingPlacer] 无法旋转: {buildingDef.name}，空间不足或与其他建筑重叠");
+                Debug.Log($"[BuildingPlacer] Cannot rotate: {buildingDef.name}, not enough space or overlaps with other buildings");
             }
         }
 

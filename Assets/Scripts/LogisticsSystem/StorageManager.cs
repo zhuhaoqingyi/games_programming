@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using GameCore;
 
 namespace LogisticsSystem
@@ -6,78 +7,144 @@ namespace LogisticsSystem
     public class StorageManager
     {
         private Dictionary<ResourceType, int> globalInventory = new Dictionary<ResourceType, int>();
-        private List<StorageComponent> storageComponents = new List<StorageComponent>();
+        private Dictionary<ResourceType, int> resourceCapacities = new Dictionary<ResourceType, int>();
+        private int totalCapacity = 0;
+
+        public int TotalCapacity => totalCapacity;
 
         public int GetResourceAmount(ResourceType type)
         {
-            int total = globalInventory.TryGetValue(type, out int amount) ? amount : 0;
-            
-            foreach (var storage in storageComponents)
+            return globalInventory.TryGetValue(type, out int amount) ? amount : 0;
+        }
+
+        public int GetResourceCapacity(ResourceType type)
+        {
+            return resourceCapacities.TryGetValue(type, out int cap) ? cap : 0;
+        }
+
+        public int GetTotalItemCount()
+        {
+            int total = 0;
+            foreach (var item in globalInventory.Values)
             {
-                total += storage.GetResourceAmount(type);
+                total += item;
             }
-            
             return total;
+        }
+
+        public void AddSimpleStorage(int amount)
+        {
+            totalCapacity += amount;
+            EnforceCapacityLimits();
+        }
+
+        public void RemoveSimpleStorage(int amount)
+        {
+            totalCapacity = Mathf.Max(0, totalCapacity - amount);
+            EnforceCapacityLimits();
+        }
+
+        public void AddContainer(Dictionary<ResourceType, int> capacities, int totalCapacityAdd)
+        {
+            foreach (var kvp in capacities)
+            {
+                if (!resourceCapacities.ContainsKey(kvp.Key))
+                {
+                    resourceCapacities[kvp.Key] = 0;
+                }
+                resourceCapacities[kvp.Key] += kvp.Value;
+            }
+            totalCapacity += totalCapacityAdd;
+            EnforceCapacityLimits();
+        }
+
+        public void RemoveContainer(Dictionary<ResourceType, int> capacities, int totalCapacityRemove)
+        {
+            foreach (var kvp in capacities)
+            {
+                if (resourceCapacities.ContainsKey(kvp.Key))
+                {
+                    resourceCapacities[kvp.Key] = Mathf.Max(0, resourceCapacities[kvp.Key] - kvp.Value);
+                    if (resourceCapacities[kvp.Key] <= 0)
+                    {
+                        resourceCapacities.Remove(kvp.Key);
+                    }
+                }
+            }
+            totalCapacity = Mathf.Max(0, totalCapacity - totalCapacityRemove);
+            EnforceCapacityLimits();
+        }
+
+        public void EnforceCapacityLimits()
+        {
+            foreach (var kvp in resourceCapacities)
+            {
+                ResourceType type = kvp.Key;
+                int capacity = kvp.Value;
+                int amount = GetResourceAmount(type);
+
+                if (amount > capacity)
+                {
+                    globalInventory[type] = capacity;
+                    if (globalInventory[type] <= 0)
+                    {
+                        globalInventory.Remove(type);
+                    }
+                }
+            }
+
+            int totalItems = GetTotalItemCount();
+            if (totalItems > totalCapacity && totalCapacity > 0)
+            {
+                int excess = totalItems - totalCapacity;
+                foreach (var kvp in new List<KeyValuePair<ResourceType, int>>(globalInventory))
+                {
+                    if (excess <= 0) break;
+                    int canRemove = Mathf.Min(kvp.Value, excess);
+                    globalInventory[kvp.Key] -= canRemove;
+                    excess -= canRemove;
+                    if (globalInventory[kvp.Key] <= 0)
+                    {
+                        globalInventory.Remove(kvp.Key);
+                    }
+                }
+            }
         }
 
         public bool AddResource(ResourceType type, int amount)
         {
             if (amount <= 0) return false;
 
-            int totalNeeded = amount;
-            int added = 0;
+            int totalItems = GetTotalItemCount();
+            if (totalCapacity > 0 && totalItems >= totalCapacity) return false;
 
-            foreach (var storage in storageComponents)
+            int capacity = GetResourceCapacity(type);
+            int current = GetResourceAmount(type);
+            int canAdd = Mathf.Min(amount, capacity - current);
+            if (totalCapacity > 0)
             {
-                if (totalNeeded <= 0) break;
-                
-                int addedToStorage = storage.AddResource(type, totalNeeded);
-                added += addedToStorage;
-                totalNeeded -= addedToStorage;
+                canAdd = Mathf.Min(canAdd, totalCapacity - totalItems);
             }
 
-            if (totalNeeded > 0)
-            {
-                if (!globalInventory.ContainsKey(type))
-                {
-                    globalInventory[type] = 0;
-                }
-                globalInventory[type] += totalNeeded;
-                added += totalNeeded;
-            }
+            if (canAdd <= 0) return false;
 
-            return added > 0;
+            if (!globalInventory.ContainsKey(type))
+            {
+                globalInventory[type] = 0;
+            }
+            globalInventory[type] += canAdd;
+            return true;
         }
 
         public bool RemoveResource(ResourceType type, int amount)
         {
             if (amount <= 0) return false;
 
-            int totalAvailable = GetResourceAmount(type);
-            if (totalAvailable < amount) return false;
+            int available = GetResourceAmount(type);
+            if (available < amount) return false;
 
-            int totalRemoved = 0;
-            int remaining = amount;
-
-            foreach (var storage in storageComponents)
-            {
-                if (remaining <= 0) break;
-                
-                int removedFromStorage = storage.RemoveResource(type, remaining);
-                totalRemoved += removedFromStorage;
-                remaining -= removedFromStorage;
-            }
-
-            if (remaining > 0)
-            {
-                if (globalInventory.ContainsKey(type))
-                {
-                    globalInventory[type] -= remaining;
-                    totalRemoved += remaining;
-                }
-            }
-
-            return totalRemoved == amount;
+            globalInventory[type] -= amount;
+            return true;
         }
 
         public bool HasEnoughResource(ResourceType type, int amount)
@@ -85,65 +152,15 @@ namespace LogisticsSystem
             return GetResourceAmount(type) >= amount;
         }
 
-        public void RegisterStorage(StorageComponent storage)
-        {
-            if (!storageComponents.Contains(storage))
-            {
-                storageComponents.Add(storage);
-            }
-        }
-
-        public void UnregisterStorage(StorageComponent storage)
-        {
-            storageComponents.Remove(storage);
-        }
-
         public Dictionary<ResourceType, int> GetAllResources()
         {
-            Dictionary<ResourceType, int> allResources = new Dictionary<ResourceType, int>();
-
-            foreach (var storage in storageComponents)
-            {
-                foreach (var item in storage.GetStoredResources())
-                {
-                    if (!allResources.ContainsKey(item.Key))
-                    {
-                        allResources[item.Key] = 0;
-                    }
-                    allResources[item.Key] += item.Value;
-                }
-            }
-
-            foreach (var item in globalInventory)
-            {
-                if (!allResources.ContainsKey(item.Key))
-                {
-                    allResources[item.Key] = 0;
-                }
-                allResources[item.Key] += item.Value;
-            }
-
-            return allResources;
+            return new Dictionary<ResourceType, int>(globalInventory);
         }
 
-        public int GetTotalStorageCapacity()
+        public bool IsResourceOverCapacity(ResourceType type)
         {
-            int total = 0;
-            foreach (var storage in storageComponents)
-            {
-                total += storage.Capacity;
-            }
-            return total;
-        }
-
-        public int GetUsedStorageCapacity()
-        {
-            int used = 0;
-            foreach (var storage in storageComponents)
-            {
-                used += storage.UsedCapacity;
-            }
-            return used;
+            int cap = GetResourceCapacity(type);
+            return cap > 0 && GetResourceAmount(type) > cap;
         }
     }
 }

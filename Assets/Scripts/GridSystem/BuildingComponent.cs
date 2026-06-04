@@ -57,17 +57,5 @@ namespace GridSystem
         {
             return status == BuildingStatus.Active;
         }
-
-        public virtual void UpdateBuilding(float deltaTime)
-        {
-            if (status == BuildingStatus.Active)
-            {
-                OnUpdate(deltaTime);
-            }
-        }
-
-        protected virtual void OnUpdate(float deltaTime)
-        {
-        }
     }
 }

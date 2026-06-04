@@ -1,51 +1,23 @@
+using UnityEngine;
 using System.Collections.Generic;
-using GameCore;
 
 namespace ProductionSystem
 {
     public class ProductionManager
     {
-        private List<ProductionBuilding> productionBuildings = new List<ProductionBuilding>();
+        private List<Productor> productors = new List<Productor>();
 
-        public void RegisterProductionBuilding(ProductionBuilding building)
+        public void RegisterProductor(Productor productor)
         {
-            if (!productionBuildings.Contains(building))
+            if (!productors.Contains(productor))
             {
-                productionBuildings.Add(building);
+                productors.Add(productor);
             }
         }
 
-        public void UnregisterProductionBuilding(ProductionBuilding building)
+        public void UnregisterProductor(Productor productor)
         {
-            productionBuildings.Remove(building);
-        }
-
-        public void UpdateProduction(float deltaTime)
-        {
-            foreach (var building in productionBuildings)
-            {
-                building.UpdateProduction(deltaTime);
-            }
-        }
-
-        public List<RecipeDefinition> GetAvailableRecipes(BuildingType buildingType)
-        {
-            return DataConfig.GetRecipesForBuilding(buildingType);
-        }
-
-        public bool CanProduce(ProductionBuilding building, RecipeDefinition recipe)
-        {
-            if (!building.CanWork())
-            {
-                return false;
-            }
-
-            if (recipe.requiredBuilding != building.Type)
-            {
-                return false;
-            }
-
-            return recipe.HasEnoughIngredients(GameManager.Instance.GetAllResources());
+            productors.Remove(productor);
         }
     }
 }

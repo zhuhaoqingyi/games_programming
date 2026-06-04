@@ -26,11 +26,9 @@ namespace UI
             }
 
             GameManager.Instance.AddResource(ResourceType.SpaceOre, 9999);
-            GameManager.Instance.AddResource(ResourceType.SpaceDebris, 9999);
-            GameManager.Instance.AddResource(ResourceType.AlloyIngot, 9999);
-            GameManager.Instance.AddResource(ResourceType.MechanicalPart, 9999);
-            GameManager.Instance.AddResource(ResourceType.ElectronicComponent, 9999);
-            GameManager.Instance.AddResource(ResourceType.AdvancedAlloy, 9999);
+            GameManager.Instance.AddResource(ResourceType.MetalMaterial, 9999);
+            GameManager.Instance.AddResource(ResourceType.BasicPart, 9999);
+            GameManager.Instance.AddResource(ResourceType.AdvancedPart, 9999);
 
             Debug.Log("[作弊] 已添加所有资源 x9999");
         }

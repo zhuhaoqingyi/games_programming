@@ -167,6 +167,11 @@ namespace UI
                 mainPanel.SetActive(isUIVisible);
             }
 
+            if (deleteModeButton != null)
+            {
+                deleteModeButton.SetActive(isUIVisible);
+            }
+
             if (!isUIVisible && isBuildingMode)
             {
                 CancelBuildingMode();
@@ -180,6 +185,11 @@ namespace UI
             {
                 mainPanel.SetActive(true);
             }
+
+            if (deleteModeButton != null)
+            {
+                deleteModeButton.SetActive(true);
+            }
         }
 
         public void HideUI()
@@ -190,6 +200,11 @@ namespace UI
                 mainPanel.SetActive(false);
             }
 
+            if (deleteModeButton != null)
+            {
+                deleteModeButton.SetActive(false);
+            }
+
             if (isBuildingMode)
             {
                 CancelBuildingMode();
@@ -198,30 +213,30 @@ namespace UI
 
         public void SelectBuilding(BuildingIconButton button)
         {
-            Debug.Log($"[BuildingUI] 点击建筑按钮: {button.BuildingDef?.name ?? "Unknown"}");
+            Debug.Log($"[BuildingUI] Building button clicked: {button.BuildingDef?.name ?? "Unknown"}");
 
             if (button.BuildingDef == null)
             {
-                Debug.LogWarning("[BuildingUI] 无法选中 - BuildingDef为空");
+                Debug.LogWarning("[BuildingUI] Cannot select - BuildingDef is null");
                 return;
             }
 
             if (!button.BuildingDef.CanAfford(GameManager.Instance?.GetAllResources() ?? new Dictionary<ResourceType, int>()))
             {
-                Debug.LogWarning($"[BuildingUI] 无法选中 {button.BuildingDef.name} - 资源不足");
+                Debug.LogWarning($"[BuildingUI] Cannot select {button.BuildingDef.name} - Insufficient resources");
                 return;
             }
 
             if (isBuildingMode && selectedButton != null && selectedButton.BuildingDef?.type == button.BuildingDef.type)
             {
-                Debug.Log($"[BuildingUI] 重复点击同一建筑 {button.BuildingDef.name}，取消当前放置模式");
+                Debug.Log($"[BuildingUI] Same building clicked again {button.BuildingDef.name}, canceling placement mode");
                 CancelBuildingMode();
                 return;
             }
 
             if (isBuildingMode)
             {
-                Debug.Log($"[BuildingUI] 已在建筑模式中，先取消当前模式再选中新建筑");
+                Debug.Log($"[BuildingUI] Already in building mode, canceling current mode before selecting new building");
                 CancelBuildingMode();
             }
 
@@ -351,7 +366,7 @@ namespace UI
 
             if (tooltipCost != null)
             {
-                string costText = "建造消耗:\n";
+                string costText = "Construction Cost:\n";
                 if (def.costs.Count > 0)
                 {
                     foreach (var cost in def.costs)
@@ -362,25 +377,25 @@ namespace UI
                 }
                 else
                 {
-                    costText += "无";
+                    costText += "None";
                 }
                 tooltipCost.text = costText;
             }
 
             if (tooltipStats != null)
             {
-                string statsText = $"尺寸: {def.width}x{def.height}\n";
+                string statsText = $"Size: {def.width}x{def.height}\n";
                 if (def.powerConsumption > 0)
                 {
-                    statsText += $"耗电: {def.powerConsumption}\n";
+                    statsText += $"Power Consumption: {def.powerConsumption}\n";
                 }
                 if (def.powerProduction > 0)
                 {
-                    statsText += $"发电: {def.powerProduction}\n";
+                    statsText += $"Power Production: {def.powerProduction}\n";
                 }
                 if (def.storageCapacity > 0)
                 {
-                    statsText += $"存储: {def.storageCapacity}\n";
+                    statsText += $"Storage: {def.storageCapacity}\n";
                 }
                 tooltipStats.text = statsText;
             }
@@ -444,7 +459,7 @@ namespace UI
         private void OnDeleteModeChanged(bool isDeleteMode)
         {
             UpdateDeleteModeButtonText();
-            Debug.Log($"[BuildingUI] 删除模式: {(isDeleteMode ? "开启" : "关闭")}");
+            Debug.Log($"[BuildingUI] Delete mode: {(isDeleteMode ? "ON" : "OFF")}");
         }
 
         private void UpdateDeleteModeButtonText()
@@ -452,7 +467,7 @@ namespace UI
             if (deleteModeButtonText != null)
             {
                 bool isDeleteMode = buildingPlacer != null && buildingPlacer.IsDeleteMode;
-                deleteModeButtonText.text = isDeleteMode ? "退出删除" : "删除模式";
+                deleteModeButtonText.text = isDeleteMode ? "Exit Delete" : "Delete Mode";
                 deleteModeButtonText.color = isDeleteMode ? deleteModeActiveColor : deleteModeInactiveColor;
             }
 

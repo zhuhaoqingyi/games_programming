@@ -1,4 +1,5 @@
 using UnityEngine;
+using GameCore;
 using GameResources;
 
 namespace ProductionSystem
@@ -8,6 +9,7 @@ namespace ProductionSystem
         [Header("采矿设置")]
         public int collectionRange = 2;
         public float collectionInterval = 2f;
+        public int miningAmount = 1;
 
         private float timer;
 
@@ -18,12 +20,9 @@ namespace ProductionSystem
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            Debug.Log($"[MiningBuilding] {name} 检测到碰撞: {other.gameObject.name}");
-
             SpaceOre ore = other.GetComponent<SpaceOre>();
             if (ore != null && !ore.IsCollected())
             {
-                Debug.Log($"[MiningBuilding] {name} 检测到矿石，造成伤害并销毁");
                 TakeDamage(ore.damageToBuilding);
                 ore.Collect();
             }
@@ -66,6 +65,10 @@ namespace ProductionSystem
                 if (ore != null && !ore.IsCollected())
                 {
                     ore.Collect();
+                    if (GameManager.Instance != null)
+                    {
+                        GameManager.Instance.AddResource(ResourceType.SpaceOre, miningAmount);
+                    }
                 }
             }
         }

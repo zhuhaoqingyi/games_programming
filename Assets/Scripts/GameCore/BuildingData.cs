@@ -31,6 +31,7 @@ namespace GameCore
         public bool isProductionBuilding;
         public bool isBoard;
         public bool canRotate;
+        public bool isCoreBuilding;
         public List<BuildingCost> costs;
         public string prefabPath;
         public string iconPath;
@@ -42,7 +43,7 @@ namespace GameCore
             int width = 1, int height = 1, int functionalAreaWidth = 0, int functionalAreaHeight = 0,
             BuildDirection direction = BuildDirection.East,
             int powerConsumption = 0, int powerProduction = 0,
-            int storageCapacity = 0, bool isProductionBuilding = false, bool isBoard = false, bool canRotate = false, string prefabPath = "", string iconPath = "")
+            int storageCapacity = 0, bool isProductionBuilding = false, bool isBoard = false, bool canRotate = false, bool isCoreBuilding = false, string prefabPath = "", string iconPath = "")
         {
             this.type = type;
             this.category = category;
@@ -59,6 +60,7 @@ namespace GameCore
             this.isProductionBuilding = isProductionBuilding;
             this.isBoard = isBoard;
             this.canRotate = canRotate;
+            this.isCoreBuilding = isCoreBuilding;
             this.prefabPath = prefabPath;
             this.iconPath = iconPath;
             this.costs = new List<BuildingCost>();

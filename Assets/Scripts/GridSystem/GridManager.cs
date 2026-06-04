@@ -126,6 +126,12 @@ namespace GridSystem
 
             PlacedBuilding placed = placedBuildings[position];
             var buildingDef = placed.Definition;
+
+            if (buildingDef != null && buildingDef.isCoreBuilding)
+            {
+                Debug.Log($"[GridManager] Cannot remove core building: {buildingDef.name}");
+                return false;
+            }
             
             if (showDebugInfo)
             {

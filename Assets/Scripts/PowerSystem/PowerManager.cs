@@ -8,15 +8,14 @@ namespace PowerSystem
     {
         public static PowerManager Instance { get; private set; }
 
-        public float maxPowerStorage = 1000f;
-        public float powerStorage = 500f;
-        
         private List<PowerProducer> producers = new List<PowerProducer>();
         private List<PowerConsumer> consumers = new List<PowerConsumer>();
 
-        public float TotalGenerated => CalculateTotalGeneration();
-        public float TotalConsumed => CalculateTotalConsumption();
+        public float TotalGenerated { get; private set; }
+        public float TotalConsumed { get; private set; }
+        public float TotalDemand { get; private set; }
         public float NetPower => TotalGenerated - TotalConsumed;
+        public bool IsPowerSatisfied => TotalGenerated >= TotalDemand;
 
         private void Awake()
         {
@@ -30,9 +29,14 @@ namespace PowerSystem
             }
         }
 
+        private void Update()
+        {
+            UpdatePower();
+        }
+
         public void RegisterProducer(PowerProducer producer)
         {
-            if (!producers.Contains(producer))
+            if (producer != null && !producers.Contains(producer))
             {
                 producers.Add(producer);
             }
@@ -45,7 +49,7 @@ namespace PowerSystem
 
         public void RegisterConsumer(PowerConsumer consumer)
         {
-            if (!consumers.Contains(consumer))
+            if (consumer != null && !consumers.Contains(consumer))
             {
                 consumers.Add(consumer);
             }
@@ -56,69 +60,84 @@ namespace PowerSystem
             consumers.Remove(consumer);
         }
 
-        public void UpdatePower(float deltaTime)
+        public void UpdatePower()
         {
-            float generated = CalculateTotalGeneration() * deltaTime;
-            float consumed = CalculateTotalConsumption() * deltaTime;
-
-            powerStorage = Mathf.Clamp(powerStorage + generated - consumed, 0f, maxPowerStorage);
-
-            bool hasEnoughPower = powerStorage >= consumed;
-            foreach (var consumer in consumers)
-            {
-                consumer.SetPowerAvailable(hasEnoughPower);
-            }
-        }
-
-        private float CalculateTotalGeneration()
-        {
-            float total = 0f;
+            TotalGenerated = 0f;
             foreach (var producer in producers)
             {
                 if (producer.IsActive())
                 {
-                    total += producer.GetPowerOutput();
+                    TotalGenerated += producer.GetPowerOutput();
                 }
             }
-            return total;
-        }
 
-        private float CalculateTotalConsumption()
-        {
-            float total = 0f;
+            float totalDemand = 0f;
             foreach (var consumer in consumers)
             {
-                if (consumer.IsActive() && consumer.IsPowered())
+                if (consumer.IsActive())
                 {
-                    total += consumer.GetPowerInput();
+                    totalDemand += consumer.GetPowerInput();
                 }
             }
-            return total;
+            TotalDemand = totalDemand;
+
+            if (TotalGenerated >= totalDemand)
+            {
+                TotalConsumed = totalDemand;
+                foreach (var consumer in consumers)
+                {
+                    if (consumer.IsActive())
+                    {
+                        consumer.SetPowerAvailable(true);
+                    }
+                }
+            }
+            else
+            {
+                var sortedConsumers = new List<PowerConsumer>(consumers);
+                sortedConsumers.Sort((a, b) =>
+                {
+                    int pA = a.Priority;
+                    int pB = b.Priority;
+                    if (pA != pB) return pA.CompareTo(pB);
+                    return a.GetInstanceID().CompareTo(b.GetInstanceID());
+                });
+
+                float remainingPower = TotalGenerated;
+                TotalConsumed = 0f;
+
+                foreach (var consumer in sortedConsumers)
+                {
+                    if (!consumer.IsActive())
+                    {
+                        consumer.SetPowerAvailable(false);
+                        continue;
+                    }
+
+                    float needed = consumer.GetPowerInput();
+                    if (remainingPower >= needed)
+                    {
+                        remainingPower -= needed;
+                        TotalConsumed += needed;
+                        consumer.SetPowerAvailable(true);
+                    }
+                    else
+                    {
+                        consumer.SetPowerAvailable(false);
+                    }
+                }
+            }
         }
 
         public bool HasEnoughPower(float amount)
         {
-            return powerStorage >= amount;
-        }
-
-        public bool ConsumePower(float amount)
-        {
-            if (powerStorage >= amount)
-            {
-                powerStorage -= amount;
-                return true;
-            }
-            return false;
-        }
-
-        public void AddPower(float amount)
-        {
-            powerStorage = Mathf.Clamp(powerStorage + amount, 0f, maxPowerStorage);
+            return NetPower >= amount;
         }
 
         public float GetPowerPercentage()
         {
-            return (powerStorage / maxPowerStorage) * 100f;
+            if (TotalConsumed <= 0f) return 100f;
+            return (TotalGenerated / TotalConsumed) * 100f;
         }
     }
 }

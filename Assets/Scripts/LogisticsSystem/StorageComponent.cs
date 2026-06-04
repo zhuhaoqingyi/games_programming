@@ -7,7 +7,6 @@ namespace LogisticsSystem
     public class StorageComponent : MonoBehaviour
     {
         [SerializeField] private int capacity = 100;
-        [SerializeField] private bool isGlobalStorage = false;
         
         private Dictionary<ResourceType, int> storedResources = new Dictionary<ResourceType, int>();
 
@@ -17,18 +16,10 @@ namespace LogisticsSystem
 
         protected virtual void Awake()
         {
-            if (isGlobalStorage)
-            {
-                GameManager.Instance?.RegisterStorage(this);
-            }
         }
 
         protected virtual void OnDestroy()
         {
-            if (isGlobalStorage)
-            {
-                GameManager.Instance?.UnregisterStorage(this);
-            }
         }
 
         public int AddResource(ResourceType type, int amount)

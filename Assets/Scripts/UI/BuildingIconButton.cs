@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using GameCore;
+using System.Collections.Generic;
 
 namespace UI
 {
@@ -123,8 +124,12 @@ namespace UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (canAfford)
+            bool currentlyCanAfford = buildingDef != null &&
+                buildingDef.CanAfford(GameManager.Instance?.GetAllResources() ?? new Dictionary<ResourceType, int>());
+
+            if (currentlyCanAfford)
             {
+                canAfford = true;
                 OnSelected?.Invoke(this);
             }
         }

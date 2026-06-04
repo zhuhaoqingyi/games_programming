@@ -4,11 +4,9 @@ namespace GameCore
     {
         None,
         SpaceOre,
-        SpaceDebris,
-        AlloyIngot,
-        MechanicalPart,
-        ElectronicComponent,
-        AdvancedAlloy
+        MetalMaterial,
+        BasicPart,
+        AdvancedPart
     }
 
     public enum BuildingType

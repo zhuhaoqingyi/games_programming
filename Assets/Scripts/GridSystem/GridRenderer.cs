@@ -122,6 +122,7 @@ namespace GridSystem
             lr.endColor = gridColor;
             lr.positionCount = 2;
             lr.useWorldSpace = true;
+            lr.sortingOrder = -10;
             lineRenderers.Add(lr);
         }
 
@@ -167,8 +168,8 @@ namespace GridSystem
             {
                 float y = startY + i * baseSize;
                 LineRenderer lr = lineRenderers[lineIndex];
-                lr.SetPosition(0, new Vector3(cameraPos.x - halfViewSize, y, 0));
-                lr.SetPosition(1, new Vector3(cameraPos.x + halfViewSize, y, 0));
+                lr.SetPosition(0, new Vector3(cameraPos.x - halfViewSize, y, -0.1f));
+                lr.SetPosition(1, new Vector3(cameraPos.x + halfViewSize, y, -0.1f));
                 lineIndex++;
             }
 
@@ -176,8 +177,8 @@ namespace GridSystem
             {
                 float x = startX + i * baseSize;
                 LineRenderer lr = lineRenderers[lineIndex];
-                lr.SetPosition(0, new Vector3(x, cameraPos.y - halfViewSize, 0));
-                lr.SetPosition(1, new Vector3(x, cameraPos.y + halfViewSize, 0));
+                lr.SetPosition(0, new Vector3(x, cameraPos.y - halfViewSize, -0.1f));
+                lr.SetPosition(1, new Vector3(x, cameraPos.y + halfViewSize, -0.1f));
                 lineIndex++;
             }
         }

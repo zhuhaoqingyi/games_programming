@@ -101,6 +101,7 @@ MonoBehaviour:
   currentHealth: 0
   collectionRange: 2
   collectionInterval: 2
+  miningAmount: 1
 --- !u!1 &3436837706649226141
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,6 +296,7 @@ GameObject:
   - component: {fileID: 5139941789398066299}
   - component: {fileID: 5745419814489363375}
   - component: {fileID: 1907700355815165525}
+  - component: {fileID: -2078144351198583357}
   m_Layer: 0
   m_Name: MiningPlatform3
   m_TagString: Untagged
@@ -404,3 +406,21 @@ MonoBehaviour:
   currentHealth: 0
   collectionRange: 2
   collectionInterval: 2
+  miningAmount: 1
+--- !u!114 &-2078144351198583357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657754641211488362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerInput: 10
+  isActive: 1
+  isPowered: 1
+  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
+  markerOffset: {x: 0, y: 0, z: -1}
