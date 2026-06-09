@@ -166,7 +166,7 @@ namespace GameCore
             var storageDock = new BuildingDefinition(
                 BuildingType.StorageDock, BuildingCategory.Storage, "Storage Dock", "Stores all types of resources",
                 width: 2, height: 1, powerConsumption: 2, powerProduction: 0,
-                storageCapacity: 500, prefabPath: "Prefabs/Buildings/StorageDock", iconPath: "Icons/Buildings/StorageDock4");
+                storageCapacity: 500, prefabPath: "Prefabs/Buildings/StorageDock", iconPath: "Icons/Buildings/StorageDock");
             storageDock.costs.Add(new BuildingCost(ResourceType.SpaceOre, 30));
             BuildingDefinitions[BuildingType.StorageDock] = storageDock;
 
@@ -193,29 +193,18 @@ namespace GameCore
             advancedFactory.costs.Add(new BuildingCost(ResourceType.BasicPart, 30));
             BuildingDefinitions[BuildingType.AdvancedFactory] = advancedFactory;
 
-            var conveyorBelt = new BuildingDefinition(
-                BuildingType.ConveyorBelt, BuildingCategory.Logistics, "Conveyor Belt", "Automatically transports materials",
-                width: 1, height: 1, powerConsumption: 1, powerProduction: 0,
-                prefabPath: "Prefabs/Buildings/ConveyorBelt", iconPath: "Icons/Buildings/ConveyorBelt");
-            conveyorBelt.costs.Add(new BuildingCost(ResourceType.BasicPart, 5));
-            BuildingDefinitions[BuildingType.ConveyorBelt] = conveyorBelt;
-
-            var sorter = new BuildingDefinition(
-                BuildingType.Sorter, BuildingCategory.Logistics, "Sorter", "Sorts different materials",
-                width: 1, height: 1, powerConsumption: 5, powerProduction: 0,
-                prefabPath: "Prefabs/Buildings/Sorter", iconPath: "Icons/Buildings/Sorter");
-            sorter.costs.Add(new BuildingCost(ResourceType.BasicPart, 10));
-            sorter.costs.Add(new BuildingCost(ResourceType.AdvancedPart, 2));
-            BuildingDefinitions[BuildingType.Sorter] = sorter;
-
-            var shipAssembly = new BuildingDefinition(
-                BuildingType.ShipAssembly, BuildingCategory.Special, "Ship Assembly Platform", "Builds interstellar spaceship",
-                width: 5, height: 3, powerConsumption: 100, powerProduction: 0,
-                prefabPath: "Prefabs/Buildings/ShipAssembly", iconPath: "Icons/Buildings/ShipAssembly");
-            shipAssembly.costs.Add(new BuildingCost(ResourceType.AdvancedPart, 100));
-            shipAssembly.costs.Add(new BuildingCost(ResourceType.AdvancedPart, 50));
-            shipAssembly.costs.Add(new BuildingCost(ResourceType.BasicPart, 80));
-            BuildingDefinitions[BuildingType.ShipAssembly] = shipAssembly;
+            var thruster = new BuildingDefinition(
+                BuildingType.Thruster, BuildingCategory.Propulsion, "Thruster", "Propels the spaceship in the facing direction. Functional area: exhaust zone",
+                width: 2, height: 2, functionalAreaWidth: 2, functionalAreaHeight: 8, direction: BuildDirection.East,
+                powerConsumption: 20, powerProduction: 0, canRotate: true,
+                prefabPath: "Prefabs/Buildings/Thruster", iconPath: "Icons/Buildings/Thruster");
+            thruster.directionalPrefabPaths[BuildDirection.East] = "Prefabs/Buildings/Thruster1";
+            thruster.directionalPrefabPaths[BuildDirection.South] = "Prefabs/Buildings/Thruster2";
+            thruster.directionalPrefabPaths[BuildDirection.West] = "Prefabs/Buildings/Thruster3";
+            thruster.directionalPrefabPaths[BuildDirection.North] = "Prefabs/Buildings/Thruster4";
+            thruster.costs.Add(new BuildingCost(ResourceType.MetalMaterial, 40));
+            thruster.costs.Add(new BuildingCost(ResourceType.BasicPart, 20));
+            BuildingDefinitions[BuildingType.Thruster] = thruster;
         }
 
         private static void InitializeRecipes()
@@ -307,9 +296,8 @@ namespace GameCore
                 case BuildingCategory.Core: return "Core";
                 case BuildingCategory.Power: return "Power";
                 case BuildingCategory.Production: return "Production";
-                case BuildingCategory.Logistics: return "Logistics";
                 case BuildingCategory.Storage: return "Storage";
-                case BuildingCategory.Special: return "Special";
+                case BuildingCategory.Propulsion: return "Propulsion";
                 case BuildingCategory.Board: return "Board";
                 default: return "Unknown";
             }

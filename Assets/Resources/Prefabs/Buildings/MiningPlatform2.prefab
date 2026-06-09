@@ -10,9 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1255942626158293291}
   - component: {fileID: 8473165625113259843}
-  - component: {fileID: 2804354732141451994}
-  - component: {fileID: 1257934211978671834}
-  - component: {fileID: -3903696952901817328}
   m_Layer: 0
   m_Name: MiningPlatform2
   m_TagString: Untagged
@@ -29,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 1886064128919151500}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -5.9206657, y: 0.33328724, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -89,57 +86,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2804354732141451994
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886064128919151500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8010dbf694a49aa41941cc0e2d79b51c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  miningInterval: 2
-  miningAmount: 1
-  collector: {fileID: 2490181479030780592}
-  ignorePowerCheck: 0
-  enableDebug: 0
---- !u!114 &1257934211978671834
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886064128919151500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
---- !u!114 &-3903696952901817328
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1886064128919151500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  powerInput: 10
-  isActive: 1
-  isPowered: 1
-  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
-  markerOffset: {x: 0, y: 0, z: -1}
 --- !u!1 &4744522277729240053
 GameObject:
   m_ObjectHideFlags: 0
@@ -238,6 +184,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac82e21cadeb8524998391c2bef03763, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  miningAmount: 10
+  collectionWidth: 2
+  collectionHeight: 2
+  enableDebug: 0
 --- !u!1 &7012027675630007120
 GameObject:
   m_ObjectHideFlags: 0
@@ -332,7 +282,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8657796742977358750}
   - component: {fileID: 1883289432984048183}
-  - component: {fileID: 1426235045981853483}
+  - component: {fileID: 6703634974999805283}
+  - component: {fileID: 4241578266094819492}
   m_Layer: 0
   m_Name: OreCollector
   m_TagString: Untagged
@@ -407,7 +358,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1426235045981853483
+--- !u!114 &6703634974999805283
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -416,11 +367,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 8941204918681781405}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
+  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerInput: 10
+  isActive: 1
+  isPowered: 1
+  priority: 5
+  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
+  markerOffset: {x: 0, y: 0, z: -1}
+--- !u!114 &4241578266094819492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8941204918681781405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b3d15a13af6f734688e96c6b2b16308, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
+  currentHealth: 100

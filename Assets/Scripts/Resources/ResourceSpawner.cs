@@ -17,6 +17,10 @@ namespace GameResources
         public int maxResources = 25;
         public float spawnDistance = 15f;
 
+        [Header("边界范围")]
+        public float boundaryMin = -150f;       // 固定边界最小值
+        public float boundaryMax = 150f;        // 固定边界最大值
+
         [Header("生成方向权重")]
         public float topWeight = 0.25f;
         public float bottomWeight = 0.25f;
@@ -88,12 +92,14 @@ namespace GameResources
             }
 
             SpawnSide side = GetRandomSide();
-            Vector3 spawnPos = GetSpawnPosition(side);
+            Vector3 worldSpawnPos = GetSpawnPosition(side);
             Vector3 moveDir = GetMoveDirection(side);
 
-            LogDebug($"生成矿石: 位置={spawnPos}, 方向={moveDir}, 预制件={prefab.name}");
+            LogDebug($"生成矿石：世界位置={worldSpawnPos}, 方向={moveDir}, 预制件={prefab.name}");
 
-            GameObject resource = Instantiate(prefab, spawnPos, Quaternion.identity);
+            // 直接在世界坐标生成，不作为容器子物体，避免容器偏移影响
+            GameObject resource = Instantiate(prefab, worldSpawnPos, Quaternion.identity);
+
             SpaceOre ore = resource.GetComponent<SpaceOre>();
             if (ore != null)
             {
@@ -169,26 +175,26 @@ namespace GameResources
             {
                 case SpawnSide.Top:
                     return new Vector3(
-                        Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance),
-                        screenHeight + spawnDistance,
+                        Mathf.Clamp(Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance), boundaryMin, boundaryMax),
+                        boundaryMax,
                         0
                     );
                 case SpawnSide.Bottom:
                     return new Vector3(
-                        Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance),
-                        -screenHeight - spawnDistance,
+                        Mathf.Clamp(Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance), boundaryMin, boundaryMax),
+                        boundaryMin,
                         0
                     );
                 case SpawnSide.Left:
                     return new Vector3(
-                        -screenWidth - spawnDistance,
-                        Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance),
+                        boundaryMin,
+                        Mathf.Clamp(Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance), boundaryMin, boundaryMax),
                         0
                     );
                 default:
                     return new Vector3(
-                        screenWidth + spawnDistance,
-                        Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance),
+                        boundaryMax,
+                        Mathf.Clamp(Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance), boundaryMin, boundaryMax),
                         0
                     );
             }

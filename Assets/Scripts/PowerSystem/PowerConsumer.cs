@@ -27,6 +27,15 @@ namespace PowerSystem
             CreatePowerShortageMarker();
         }
 
+        protected virtual void Start()
+        {
+            // 如果 Awake 时 PowerManager 还未初始化，重试注册
+            if (PowerManager.Instance != null)
+            {
+                RegisterWithManager();
+            }
+        }
+
         protected virtual void OnDestroy()
         {
             UnregisterFromManager();
@@ -34,8 +43,6 @@ namespace PowerSystem
 
         private void CreatePowerShortageMarker()
         {
-            if (powerShortageIcon == null) return;
-
             powerShortageMarker = new GameObject("PowerShortageMarker");
             powerShortageMarker.transform.SetParent(transform);
             powerShortageMarker.transform.localPosition = markerOffset;
@@ -43,7 +50,7 @@ namespace PowerSystem
 
             float cellSize = GridManager.Instance != null ? GridManager.Instance.cellSize : 1f;
             RectTransform rectTransform = powerShortageMarker.AddComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(cellSize, cellSize);
+            rectTransform.sizeDelta = new Vector2(cellSize * 0.8f, cellSize * 0.8f);
             rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
@@ -59,8 +66,11 @@ namespace PowerSystem
             GraphicRaycaster raycaster = powerShortageMarker.AddComponent<GraphicRaycaster>();
 
             markerImage = powerShortageMarker.AddComponent<Image>();
-            markerImage.sprite = powerShortageIcon;
-            markerImage.color = Color.white;
+            if (powerShortageIcon != null)
+            {
+                markerImage.sprite = powerShortageIcon;
+            }
+            markerImage.color = Color.red;
 
             powerShortageMarker.SetActive(false);
         }
@@ -70,6 +80,11 @@ namespace PowerSystem
             if (PowerManager.Instance != null)
             {
                 PowerManager.Instance.RegisterConsumer(this);
+                Debug.Log($"[PowerConsumer] {name} 已注册到 PowerManager");
+            }
+            else
+            {
+                Debug.LogWarning($"[PowerConsumer] {name} 注册失败: PowerManager.Instance 为 null");
             }
         }
 

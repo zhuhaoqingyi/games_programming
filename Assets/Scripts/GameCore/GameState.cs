@@ -2,6 +2,12 @@ using System.Collections.Generic;
 
 namespace GameCore
 {
+    public enum GamePhase
+    {
+        BuildMode,    // Free camera, placing buildings
+        ShipMode      // Camera locked to ship, controlling thrusters
+    }
+
     public struct GridPosition
     {
         public int x;

@@ -1,4 +1,6 @@
 using UnityEngine;
+using GameCore;
+using GridSystem;
 
 namespace ProductionSystem
 {
@@ -40,6 +42,21 @@ namespace ProductionSystem
                 Debug.Log($"[BuildingBase] {name} 添加 BoxCollider2D");
             }
             buildingCollider.isTrigger = true;
+
+            // 根据建筑定义设置 Collider 大小
+            BuildingComponent buildingComp = GetComponent<BuildingComponent>();
+            if (buildingComp != null)
+            {
+                var def = DataConfig.GetBuilding(buildingComp.Type);
+                if (def != null)
+                {
+                    float cellSize = GridManager.Instance != null ? GridManager.Instance.cellSize : 1f;
+                    Vector2 size = new Vector2(def.width * cellSize, def.height * cellSize);
+                    ((BoxCollider2D)buildingCollider).size = size;
+                    Debug.Log($"[BuildingBase] {name} 碰撞体大小: {size} (建筑: {def.width}x{def.height})");
+                }
+            }
+
             Debug.Log($"[BuildingBase] {name} 碰撞体设置完成");
         }
 

@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1423561022674915123}
   - component: {fileID: 2104091003825475540}
-  - component: {fileID: 2723333671509107414}
+  - component: {fileID: 1331341367391152788}
+  - component: {fileID: 7599814281539648172}
   m_Layer: 0
   m_Name: OreCollector
   m_TagString: Untagged
@@ -85,7 +86,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2723333671509107414
+--- !u!114 &1331341367391152788
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,14 +95,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 3049198582653581059}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b3d15a13af6f734688e96c6b2b16308, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
+  currentHealth: 100
+--- !u!114 &7599814281539648172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3049198582653581059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerInput: 10
+  isActive: 1
+  isPowered: 1
+  priority: 5
+  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
+  markerOffset: {x: 0, y: 0, z: -1}
 --- !u!1 &3436837706649226141
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,6 +216,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac82e21cadeb8524998391c2bef03763, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  miningAmount: 10
+  collectionWidth: 2
+  collectionHeight: 2
+  enableDebug: 0
 --- !u!1 &4004640836355113185
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,9 +314,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5153353110377444314}
   - component: {fileID: 5139941789398066299}
-  - component: {fileID: 5745419814489363375}
-  - component: {fileID: 1907700355815165525}
-  - component: {fileID: -2078144351198583357}
   m_Layer: 0
   m_Name: MiningPlatform3
   m_TagString: Untagged
@@ -313,7 +330,7 @@ Transform:
   m_GameObject: {fileID: 5657754641211488362}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -17.742954, y: 3.8799734, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -373,54 +390,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &5745419814489363375
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5657754641211488362}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8010dbf694a49aa41941cc0e2d79b51c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  miningInterval: 2
-  miningAmount: 1
-  collector: {fileID: 599823843077998557}
-  ignorePowerCheck: 0
-  enableDebug: 0
---- !u!114 &1907700355815165525
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5657754641211488362}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
---- !u!114 &-2078144351198583357
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5657754641211488362}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  powerInput: 10
-  isActive: 1
-  isPowered: 1
-  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
-  markerOffset: {x: 0, y: 0, z: -1}

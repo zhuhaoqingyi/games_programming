@@ -54,6 +54,11 @@ namespace UI
         private bool isUIVisible = true;
         private bool isBuildingMode = false;
 
+        // Tooltip 当前所属的按钮（防止延迟协程错误隐藏后续按钮的tooltip）
+        private BuildingIconButton currentTooltipOwner;
+
+        public bool IsUIVisible => isUIVisible;
+
         private void Awake()
         {
             if (Instance == null)
@@ -113,6 +118,8 @@ namespace UI
         {
             if (Input.GetKeyDown(toggleKey))
             {
+                // 按B键时强制隐藏tooltip
+                HideBuildingTooltip();
                 ToggleUI();
             }
         }
@@ -176,20 +183,43 @@ namespace UI
             {
                 CancelBuildingMode();
             }
+
+            // 在飞船驾驶模式下打开建筑系统时，切换到建造模式视角
+            if (isUIVisible && ThrustManager.Instance != null && ThrustManager.Instance.CurrentPhase == GamePhase.ShipMode)
+            {
+                ThrustManager.Instance.EnterBuildMode();
+                Debug.Log("[BuildingUI] 从飞船模式切换到建造模式视角");
+            }
         }
 
         public void ShowUI()
         {
+            Debug.Log("[BuildingUI] ShowUI called");
+            
             isUIVisible = true;
             if (mainPanel != null)
             {
                 mainPanel.SetActive(true);
+                Debug.Log("[BuildingUI] mainPanel activated");
             }
 
             if (deleteModeButton != null)
             {
                 deleteModeButton.SetActive(true);
+                Debug.Log("[BuildingUI] deleteModeButton activated");
             }
+
+            // 恢复所有分类面板的展开状态
+            foreach (var panel in categoryPanels)
+            {
+                if (panel != null)
+                {
+                    panel.SetExpanded(true);
+                    Debug.Log("[BuildingUI] Category panel " + panel.Category + " expanded");
+                }
+            }
+            
+            Debug.Log("[BuildingUI] ShowUI completed");
         }
 
         public void HideUI()
@@ -205,10 +235,8 @@ namespace UI
                 deleteModeButton.SetActive(false);
             }
 
-            if (isBuildingMode)
-            {
-                CancelBuildingMode();
-            }
+            // 隐藏 UI 时也隐藏 tooltip
+            HideBuildingTooltip();
         }
 
         public void SelectBuilding(BuildingIconButton button)
@@ -271,6 +299,9 @@ namespace UI
         {
             isBuildingMode = true;
 
+            // 隐藏建筑 UI
+            HideUI();
+
             // 触发选择建筑事件
             OnBuildingSelected?.Invoke(def.type);
 
@@ -319,6 +350,8 @@ namespace UI
 
         public void CancelBuildingMode()
         {
+            Debug.Log("[BuildingUI] CancelBuildingMode called, restoring UI");
+            
             isBuildingMode = false;
 
             // 触发退出建筑模式事件
@@ -335,6 +368,14 @@ namespace UI
             }
 
             DeselectAll();
+            
+            // 隐藏 tooltip
+            HideBuildingTooltip();
+
+            // 恢复建筑 UI 显示
+            ShowUI();
+            
+            Debug.Log("[BuildingUI] CancelBuildingMode completed, isUIVisible=" + isUIVisible);
         }
 
         public void UpdateAllAffordability()
@@ -348,68 +389,167 @@ namespace UI
             }
         }
 
-        public void ShowBuildingTooltip(BuildingDefinition def, Vector3 screenPosition)
+        public void ShowBuildingTooltip(BuildingDefinition def, Vector3 screenPosition, BuildingIconButton owner)
         {
-            if (tooltipPanel == null || def == null) return;
+            if (tooltipPanel == null)
+            {
+                Debug.LogError("[BuildingUI] tooltipPanel is null!");
+                return;
+            }
+            
+            if (def == null)
+            {
+                Debug.LogError("[BuildingUI] BuildingDefinition is null!");
+                return;
+            }
 
+            // 记录当前 tooltip 的所属按钮
+            currentTooltipOwner = owner;
+
+            Debug.Log($"[BuildingUI] Showing tooltip for {def.name}");
+
+            // 确保 tooltipPanel 显示
             tooltipPanel.SetActive(true);
+            
+            // 确保 CanvasGroup 的透明度正确
+            CanvasGroup tooltipCanvasGroup = tooltipPanel.GetComponent<CanvasGroup>();
+            if (tooltipCanvasGroup != null)
+            {
+                tooltipCanvasGroup.alpha = 1f;
+                tooltipCanvasGroup.interactable = false;
+                tooltipCanvasGroup.blocksRaycasts = false;
+            }
+            
+            // 确保 Image 组件的颜色透明度正确，并且不阻挡鼠标
+            Image tooltipImage = tooltipPanel.GetComponent<Image>();
+            if (tooltipImage != null)
+            {
+                Color c = tooltipImage.color;
+                c.a = Mathf.Clamp01(c.a);
+                tooltipImage.color = c;
+                tooltipImage.raycastTarget = false;
+            }
+            
+            // 确保所有子物体的 Image 也不阻挡鼠标
+            Image[] childImages = tooltipPanel.GetComponentsInChildren<Image>();
+            foreach (Image childImage in childImages)
+            {
+                childImage.raycastTarget = false;
+            }
+            
+            // 确保所有子物体的 Text 也不阻挡鼠标
+            Text[] childTexts = tooltipPanel.GetComponentsInChildren<Text>();
+            foreach (Text childText in childTexts)
+            {
+                childText.raycastTarget = false;
+            }
 
+            // 建筑名称
             if (tooltipName != null)
             {
                 tooltipName.text = def.name;
+                // 确保名称文本正确设置
+                tooltipName.horizontalOverflow = HorizontalWrapMode.Wrap;
+                tooltipName.verticalOverflow = VerticalWrapMode.Overflow;
+                tooltipName.alignment = TextAnchor.UpperLeft;
             }
 
+            // 建筑描述
             if (tooltipDescription != null)
             {
                 tooltipDescription.text = def.description;
+                tooltipDescription.horizontalOverflow = HorizontalWrapMode.Wrap;
+                tooltipDescription.verticalOverflow = VerticalWrapMode.Overflow;
+                tooltipDescription.alignment = TextAnchor.UpperLeft;
             }
 
+            // 建造成本
             if (tooltipCost != null)
             {
-                string costText = "Construction Cost:\n";
+                string costText = "<color=#FFD700>Construction Cost:</color>\n";
                 if (def.costs.Count > 0)
                 {
                     foreach (var cost in def.costs)
                     {
                         var resourceDef = DataConfig.GetResource(cost.resourceType);
-                        costText += $"- {resourceDef?.name ?? cost.resourceType.ToString()}: {cost.amount}\n";
+                        string resourceName = resourceDef?.name ?? cost.resourceType.ToString();
+                        costText += $"  • {resourceName}: {cost.amount}\n";
                     }
                 }
                 else
                 {
-                    costText += "None";
+                    costText += "  None";
                 }
                 tooltipCost.text = costText;
+                tooltipCost.horizontalOverflow = HorizontalWrapMode.Wrap;
+                tooltipCost.verticalOverflow = VerticalWrapMode.Overflow;
+                tooltipCost.alignment = TextAnchor.UpperLeft;
             }
 
+            // 建筑属性
             if (tooltipStats != null)
             {
-                string statsText = $"Size: {def.width}x{def.height}\n";
+                System.Text.StringBuilder statsText = new System.Text.StringBuilder();
+                statsText.AppendLine("<color=#FFD700>Building Stats:</color>");
+                statsText.AppendLine($"  • Size: {def.width} x {def.height}");
+                
+                if (def.functionalAreaWidth > 0 || def.functionalAreaHeight > 0)
+                {
+                    statsText.AppendLine($"  • Functional Area: {def.functionalAreaWidth} x {def.functionalAreaHeight}");
+                }
+
                 if (def.powerConsumption > 0)
                 {
-                    statsText += $"Power Consumption: {def.powerConsumption}\n";
+                    statsText.AppendLine($"  • <color=#FF6B6B>Power Consumption:</color> {def.powerConsumption} MW");
                 }
+                
                 if (def.powerProduction > 0)
                 {
-                    statsText += $"Power Production: {def.powerProduction}\n";
+                    statsText.AppendLine($"  • <color=#6BFF6B>Power Production:</color> {def.powerProduction} MW");
                 }
+                
                 if (def.storageCapacity > 0)
                 {
-                    statsText += $"Storage: {def.storageCapacity}\n";
+                    statsText.AppendLine($"  • <color=#6BB3FF>Storage Capacity:</color> {def.storageCapacity}");
                 }
-                tooltipStats.text = statsText;
+
+                if (def.isProductionBuilding)
+                {
+                    statsText.AppendLine($"  • <color=#FFB36B>Production Building</color>");
+                }
+
+                if (def.isBoard)
+                {
+                    statsText.AppendLine($"  • <color=#B36BFF>Base Board</color>");
+                }
+
+                if (def.isCoreBuilding)
+                {
+                    statsText.AppendLine($"  • <color=#FF6BFF>Core Building</color>");
+                }
+
+                if (def.canRotate)
+                {
+                    statsText.AppendLine($"  • <color=#6BFFFF>Rotatable</color>");
+                }
+
+                tooltipStats.text = statsText.ToString();
+                tooltipStats.horizontalOverflow = HorizontalWrapMode.Wrap;
+                tooltipStats.verticalOverflow = VerticalWrapMode.Overflow;
+                tooltipStats.alignment = TextAnchor.UpperLeft;
             }
 
+            // 更新 tooltip 位置
             if (tooltipRect != null)
             {
                 Vector2 localPoint;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     tooltipRect.parent as RectTransform,
-                    new Vector2(0, Screen.height),
+                    screenPosition,
                     null,
                     out localPoint
                 );
-                tooltipRect.localPosition = localPoint + new Vector2(10, -10);
+                tooltipRect.localPosition = localPoint + new Vector2(15, -15);
             }
         }
 
@@ -418,6 +558,19 @@ namespace UI
             if (tooltipPanel != null)
             {
                 tooltipPanel.SetActive(false);
+            }
+            currentTooltipOwner = null;
+        }
+
+        /// <summary>
+        /// 仅当 owner 与当前 tooltip 的所属按钮一致时才隐藏
+        /// 用于 BuildingIconButton 的延迟隐藏协程，防止误隐藏其他按钮的 tooltip
+        /// </summary>
+        public void HideBuildingTooltipIfOwner(BuildingIconButton owner)
+        {
+            if (currentTooltipOwner == owner)
+            {
+                HideBuildingTooltip();
             }
         }
 

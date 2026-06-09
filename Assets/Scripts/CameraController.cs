@@ -14,6 +14,10 @@ public class CameraController : MonoBehaviour
     public float minZoom = 5f;
     public float maxZoom = 20f;
 
+    [Header("飞船视角设置")]
+    public float shipModeZoom = 12f;
+    public Vector3 shipCameraOffset = new Vector3(0, 0, -10f);
+
     [Header("边界设置")]
     public bool enableBounds = true;
     public float leftBound = -50f;
@@ -27,6 +31,11 @@ public class CameraController : MonoBehaviour
     private Camera mainCamera;
     private float currentZoom;
     private Vector3 targetPosition;
+    
+    // 飞船模式相关
+    private bool isShipMode = false;
+    private float buildModeZoom;
+    private Transform shipCenter;
 
     private void Awake()
     {
@@ -37,8 +46,30 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        HandleMovement();
+        if (isShipMode)
+        {
+            HandleShipModeMovement();
+        }
+        else
+        {
+            HandleMovement();
+        }
         HandleZoom();
+    }
+    
+    /// <summary>
+    /// 飞船模式下的相机移动 - 跟随飞船中心，不响应WASD移动
+    /// </summary>
+    private void HandleShipModeMovement()
+    {
+        // 在飞船模式下，相机位置由飞船决定
+        // 从 ThrustManager 获取当前飞船中心位置
+        if (ThrustManager.Instance != null)
+        {
+            Vector3 shipCenter = ThrustManager.Instance.GetShipCenterWorldPosition();
+            shipCenter.z = transform.position.z; // 保持相机的Z轴
+            transform.position = Vector3.Lerp(transform.position, shipCenter, Time.deltaTime * 8f);
+        }
     }
 
     private void HandleMovement()
@@ -128,6 +159,59 @@ public class CameraController : MonoBehaviour
         ClampToBounds();
         transform.position = targetPosition;
     }
+
+    /// <summary>
+    /// 启用飞船模式 - 相机锁定到飞船中心
+    /// </summary>
+    public void EnableShipMode(Vector3 shipCenterPosition)
+    {
+        isShipMode = true;
+        buildModeZoom = currentZoom;
+        
+        // 保存飞船中心引用
+        // 这里我们创建一个临时Transform来跟踪飞船位置
+        if (shipCenter == null)
+        {
+            GameObject shipCenterObj = new GameObject("ShipCenter");
+            shipCenter = shipCenterObj.transform;
+        }
+        shipCenter.position = shipCenterPosition;
+        
+        // 平滑过渡到飞船视角缩放
+        currentZoom = Mathf.Lerp(currentZoom, shipModeZoom, 0.5f);
+        
+        Debug.Log("[CameraController] 切换到飞船操作视角");
+    }
+
+    /// <summary>
+    /// 禁用飞船模式 - 返回建造自由视角
+    /// </summary>
+    public void DisableShipMode()
+    {
+        isShipMode = false;
+        
+        // 恢复到建造模式的缩放
+        currentZoom = Mathf.Lerp(currentZoom, buildModeZoom, 0.5f);
+        mainCamera.orthographicSize = currentZoom;
+        
+        // 将目标位置设置回当前位置，避免跳跃
+        targetPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        
+        Debug.Log("[CameraController] 切换到建造自由视角");
+    }
+
+    /// <summary>
+    /// 更新飞船中心位置（每帧调用）
+    /// </summary>
+    public void UpdateShipCenter(Vector3 position)
+    {
+        if (shipCenter != null)
+        {
+            shipCenter.position = position;
+        }
+    }
+
+    public bool IsShipModeActive() => isShipMode;
 
     public float GetCurrentZoom()
     {

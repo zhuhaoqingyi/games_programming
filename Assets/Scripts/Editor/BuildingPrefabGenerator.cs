@@ -66,14 +66,11 @@ public class BuildingPrefabGenerator : MonoBehaviour
                 case BuildingCategory.Production:
                     renderer.material.color = new Color(0.8f, 0.6f, 0.4f);
                     break;
-                case BuildingCategory.Logistics:
-                    renderer.material.color = new Color(0.4f, 0.6f, 0.8f);
-                    break;
                 case BuildingCategory.Storage:
                     renderer.material.color = new Color(0.6f, 0.6f, 0.6f);
                     break;
-                case BuildingCategory.Special:
-                    renderer.material.color = new Color(1f, 0.8f, 0.2f);
+                case BuildingCategory.Propulsion:
+                    renderer.material.color = new Color(1f, 0.5f, 0.2f);
                     break;
             }
         }

@@ -12,7 +12,8 @@ namespace GameResources
         public float bobFrequency = 2f;
 
         [Header("边界设置")]
-        public float destroyDistance = 25f;
+        public float boundaryMin = -75f;       // 边界最小值
+        public float boundaryMax = 75f;        // 边界最大值
         public float protectedTime = 3f;
 
         [Header("伤害设置")]
@@ -28,8 +29,8 @@ namespace GameResources
 
         private void Awake()
         {
-            SetupRigidbody();
             SetupCollider();
+            SetupRigidbody();
 
             Vector3 defaultDirection = new Vector3(
                 Random.Range(-1f, 1f),
@@ -41,14 +42,6 @@ namespace GameResources
             spawnTime = Time.time;
         }
 
-        private void Start()
-        {
-            if (rb != null)
-            {
-                rb.velocity = (Vector2)moveDirection * currentSpeed;
-            }
-        }
-
         private void SetupRigidbody()
         {
             rb = gameObject.GetComponent<Rigidbody2D>();
@@ -56,10 +49,10 @@ namespace GameResources
             {
                 rb = gameObject.AddComponent<Rigidbody2D>();
             }
-            rb.isKinematic = false;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.isKinematic = true;
             rb.gravityScale = 0;
-            rb.drag = 0;
-            rb.angularDrag = 0;
+            rb.sleepMode = RigidbodySleepMode2D.NeverSleep;
         }
 
         private void SetupCollider()
@@ -77,14 +70,7 @@ namespace GameResources
         {
             if (isCollected) return;
 
-            ProductionSystem.MiningCollector collector = other.GetComponent<ProductionSystem.MiningCollector>();
             ProductionSystem.BuildingBase building = other.GetComponent<ProductionSystem.BuildingBase>();
-
-            if (collector != null)
-            {
-                Collect();
-                return;
-            }
 
             if (building != null)
             {
@@ -92,11 +78,6 @@ namespace GameResources
                 Collect();
                 return;
             }
-        }
-
-        public Vector3 GetPosition()
-        {
-            return transform.position;
         }
 
         public void Initialize(Vector3 spawnDirection)
@@ -113,25 +94,24 @@ namespace GameResources
             spawnTime = Time.time;
         }
 
-        private void FixedUpdate()
-        {
-            if (isCollected || rb == null) return;
-
-            rb.velocity = (Vector2)moveDirection * currentSpeed;
-        }
-
         private void Update()
         {
             if (isCollected) return;
 
             time += Time.deltaTime;
 
-            transform.Rotate(0, 0, rotationSpeed * Time.deltaTime);
+            // 直接移动 transform 以支持碰撞检测（Rigidbody2D kinematic + trigger collider 可以触发 OnTriggerEnter2D）
+            Vector3 worldMove = moveDirection * currentSpeed * Time.deltaTime;
+            transform.position += worldMove;
 
+            // Rotation
+            transform.localEulerAngles += new Vector3(0, 0, rotationSpeed * Time.deltaTime);
+
+            // Bobbing on Z axis
             float bob = Mathf.Sin(time * bobFrequency) * bobAmplitude;
-            Vector3 pos = transform.position;
-            pos.z = bob;
-            transform.position = pos;
+            Vector3 worldPos = transform.position;
+            worldPos.z = bob;
+            transform.position = worldPos;
 
             CheckBoundary();
         }
@@ -141,16 +121,11 @@ namespace GameResources
             if (Time.time - spawnTime < protectedTime)
                 return;
 
-            Camera mainCam = Camera.main;
-            if (mainCam == null) return;
+            // 使用世界坐标进行边界检测，固定范围 [-150, 150]，不随容器移动而变化
+            Vector3 worldPos = transform.position;
 
-            float screenWidth = mainCam.orthographicSize * mainCam.aspect;
-            float screenHeight = mainCam.orthographicSize;
-
-            Vector3 pos = transform.position;
-
-            if (Mathf.Abs(pos.x) > screenWidth + destroyDistance ||
-                Mathf.Abs(pos.y) > screenHeight + destroyDistance)
+            if (worldPos.x < boundaryMin || worldPos.x > boundaryMax ||
+                worldPos.y < boundaryMin || worldPos.y > boundaryMax)
             {
                 Destroy(gameObject);
             }

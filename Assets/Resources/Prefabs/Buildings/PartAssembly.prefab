@@ -338,5 +338,5 @@ MonoBehaviour:
   outputResourceType: 3
   outputAmount: 1
   productionTime: 15
-  disabledColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
-  targetRenderer: {fileID: 0}
+  disabledBrightness: 0.3
+  disabledAlpha: 0.5

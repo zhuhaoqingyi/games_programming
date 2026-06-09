@@ -245,23 +245,33 @@ namespace GridSystem
                 int funcStartX = 0, funcStartY = 0;
                 int funcEndX = 0, funcEndY = 0;
 
+                // Functional area display dimensions based on direction
+                // East/West: width=8 (extends outward), height=2
+                // North/South: width=2, height=8 (extends upward)
+                int faWidth = placed.Direction == BuildDirection.North || placed.Direction == BuildDirection.South
+                    ? buildingDef.functionalAreaWidth
+                    : buildingDef.functionalAreaHeight;
+                int faHeight = placed.Direction == BuildDirection.North || placed.Direction == BuildDirection.South
+                    ? buildingDef.functionalAreaHeight
+                    : buildingDef.functionalAreaWidth;
+
                 switch (placed.Direction)
                 {
                     case BuildDirection.North:
                         funcStartX = 0; funcStartY = displayHeight;
-                        funcEndX = displayWidth; funcEndY = displayHeight + buildingDef.functionalAreaHeight;
+                        funcEndX = faWidth; funcEndY = displayHeight + faHeight;
                         break;
                     case BuildDirection.South:
-                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
-                        funcEndX = displayWidth; funcEndY = 0;
+                        funcStartX = 0; funcStartY = -faHeight;
+                        funcEndX = faWidth; funcEndY = 0;
                         break;
                     case BuildDirection.East:
                         funcStartX = displayWidth; funcStartY = 0;
-                        funcEndX = displayWidth + buildingDef.functionalAreaWidth; funcEndY = displayHeight;
+                        funcEndX = displayWidth + faWidth; funcEndY = faHeight;
                         break;
                     case BuildDirection.West:
-                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
-                        funcEndX = 0; funcEndY = displayHeight;
+                        funcStartX = -faWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = faHeight;
                         break;
                 }
 
@@ -315,23 +325,33 @@ namespace GridSystem
                 int funcStartX = 0, funcStartY = 0;
                 int funcEndX = 0, funcEndY = 0;
 
+                // Functional area display dimensions based on direction
+                // East/West: width=8 (extends outward), height=2
+                // North/South: width=2, height=8 (extends upward)
+                int faWidth = placed.Direction == BuildDirection.North || placed.Direction == BuildDirection.South
+                    ? buildingDef.functionalAreaWidth
+                    : buildingDef.functionalAreaHeight;
+                int faHeight = placed.Direction == BuildDirection.North || placed.Direction == BuildDirection.South
+                    ? buildingDef.functionalAreaHeight
+                    : buildingDef.functionalAreaWidth;
+
                 switch (placed.Direction)
                 {
                     case BuildDirection.North:
                         funcStartX = 0; funcStartY = displayHeight;
-                        funcEndX = displayWidth; funcEndY = displayHeight + buildingDef.functionalAreaHeight;
+                        funcEndX = faWidth; funcEndY = displayHeight + faHeight;
                         break;
                     case BuildDirection.South:
-                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
-                        funcEndX = displayWidth; funcEndY = 0;
+                        funcStartX = 0; funcStartY = -faHeight;
+                        funcEndX = faWidth; funcEndY = 0;
                         break;
                     case BuildDirection.East:
                         funcStartX = displayWidth; funcStartY = 0;
-                        funcEndX = displayWidth + buildingDef.functionalAreaWidth; funcEndY = displayHeight;
+                        funcEndX = displayWidth + faWidth; funcEndY = faHeight;
                         break;
                     case BuildDirection.West:
-                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
-                        funcEndX = 0; funcEndY = displayHeight;
+                        funcStartX = -faWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = faHeight;
                         break;
                 }
 
@@ -561,23 +581,33 @@ namespace GridSystem
                 int funcStartX = 0, funcStartY = 0;
                 int funcEndX = 0, funcEndY = 0;
 
+                // Functional area display dimensions based on direction
+                // East/West: width=8 (extends outward), height=2
+                // North/South: width=2, height=8 (extends upward)
+                int faWidth = direction == BuildDirection.North || direction == BuildDirection.South
+                    ? buildingDef.functionalAreaWidth
+                    : buildingDef.functionalAreaHeight;
+                int faHeight = direction == BuildDirection.North || direction == BuildDirection.South
+                    ? buildingDef.functionalAreaHeight
+                    : buildingDef.functionalAreaWidth;
+
                 switch (direction)
                 {
                     case BuildDirection.North:
                         funcStartX = 0; funcStartY = displayHeight;
-                        funcEndX = displayWidth; funcEndY = displayHeight + buildingDef.functionalAreaHeight;
+                        funcEndX = faWidth; funcEndY = displayHeight + faHeight;
                         break;
                     case BuildDirection.South:
-                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
-                        funcEndX = displayWidth; funcEndY = 0;
+                        funcStartX = 0; funcStartY = -faHeight;
+                        funcEndX = faWidth; funcEndY = 0;
                         break;
                     case BuildDirection.East:
                         funcStartX = displayWidth; funcStartY = 0;
-                        funcEndX = displayWidth + buildingDef.functionalAreaWidth; funcEndY = displayHeight;
+                        funcEndX = displayWidth + faWidth; funcEndY = faHeight;
                         break;
                     case BuildDirection.West:
-                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
-                        funcEndX = 0; funcEndY = displayHeight;
+                        funcStartX = -faWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = faHeight;
                         break;
                 }
 
@@ -755,9 +785,8 @@ namespace GridSystem
                     case BuildingCategory.Core:        renderer.material.color = new Color(0.8f, 0.4f, 0.8f); break;
                     case BuildingCategory.Power:       renderer.material.color = new Color(0.4f, 0.8f, 0.4f); break;
                     case BuildingCategory.Production:  renderer.material.color = new Color(0.8f, 0.6f, 0.4f); break;
-                    case BuildingCategory.Logistics:   renderer.material.color = new Color(0.4f, 0.6f, 0.8f); break;
                     case BuildingCategory.Storage:     renderer.material.color = new Color(0.6f, 0.6f, 0.6f); break;
-                    case BuildingCategory.Special:     renderer.material.color = new Color(1f, 0.8f, 0.2f); break;
+                    case BuildingCategory.Propulsion:  renderer.material.color = new Color(1f, 0.5f, 0.2f); break;
                     case BuildingCategory.Board:       renderer.material.color = new Color(0.3f, 0.3f, 0.3f); break;
                 }
             }
@@ -795,23 +824,33 @@ namespace GridSystem
                 int funcStartX = 0, funcStartY = 0;
                 int funcEndX = 0, funcEndY = 0;
 
+                // Functional area display dimensions based on direction
+                // East/West: width=8 (extends outward), height=2
+                // North/South: width=2, height=8 (extends upward)
+                int faWidth = direction == BuildDirection.North || direction == BuildDirection.South
+                    ? buildingDef.functionalAreaWidth
+                    : buildingDef.functionalAreaHeight;
+                int faHeight = direction == BuildDirection.North || direction == BuildDirection.South
+                    ? buildingDef.functionalAreaHeight
+                    : buildingDef.functionalAreaWidth;
+
                 switch (direction)
                 {
                     case BuildDirection.North:
                         funcStartX = 0; funcStartY = displayHeight;
-                        funcEndX = displayWidth; funcEndY = displayHeight + buildingDef.functionalAreaHeight;
+                        funcEndX = faWidth; funcEndY = displayHeight + faHeight;
                         break;
                     case BuildDirection.South:
-                        funcStartX = 0; funcStartY = -buildingDef.functionalAreaHeight;
-                        funcEndX = displayWidth; funcEndY = 0;
+                        funcStartX = 0; funcStartY = -faHeight;
+                        funcEndX = faWidth; funcEndY = 0;
                         break;
                     case BuildDirection.East:
                         funcStartX = displayWidth; funcStartY = 0;
-                        funcEndX = displayWidth + buildingDef.functionalAreaWidth; funcEndY = displayHeight;
+                        funcEndX = displayWidth + faWidth; funcEndY = faHeight;
                         break;
                     case BuildDirection.West:
-                        funcStartX = -buildingDef.functionalAreaWidth; funcStartY = 0;
-                        funcEndX = 0; funcEndY = displayHeight;
+                        funcStartX = -faWidth; funcStartY = 0;
+                        funcEndX = 0; funcEndY = faHeight;
                         break;
                 }
 

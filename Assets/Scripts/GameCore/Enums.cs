@@ -21,9 +21,6 @@ namespace GameCore
         FurnaceRefinery,
         PartAssembly,
         AdvancedFactory,
-        ConveyorBelt,
-        Sorter,
-        ShipAssembly,
         BasicBoard,
         ReinforcedBoard,
         AdvancedBoard
@@ -42,9 +39,8 @@ namespace GameCore
         Core,
         Power,
         Production,
-        Logistics,
         Storage,
-        Special,
+        Propulsion,
         Board
     }
 

@@ -120,9 +120,24 @@ namespace GridSystem
             currentRotation = (BuildDirection)currentVal;
 
             Debug.Log($"[BuildingPlacer] Building rotation: direction -> {currentRotation}");
+
+            // Recreate functional area preview with new direction dimensions
+            DestroyFunctionalAreaPreview();
+            CreateFunctionalAreaPreview(buildingDef);
+
             UpdatePreviewPosition(mainCamera.ScreenToWorldPoint(Input.mousePosition));
             UpdatePreviewValidity(mainCamera.ScreenToWorldPoint(Input.mousePosition));
             UpdatePreviewScale();
+        }
+
+        private void DestroyFunctionalAreaPreview()
+        {
+            if (functionalAreaPreview != null)
+            {
+                Destroy(functionalAreaPreview);
+            }
+            functionalAreaPreview = null;
+            functionalAreaPreviewRenderer = null;
         }
 
         public void SelectBuilding(BuildingType buildingType)
@@ -141,9 +156,20 @@ namespace GridSystem
 
         public void CancelPlacement()
         {
+            Debug.Log("[BuildingPlacer] CancelPlacement called");
+            
             isPlacing = false;
             selectedBuilding = BuildingType.None;
             DestroyPreview();
+
+            // 隐藏网格
+            if (GridRenderer.Instance != null)
+            {
+                GridRenderer.Instance.HideGrid();
+                Debug.Log("[BuildingPlacer] Grid hidden");
+            }
+            
+            Debug.Log("[BuildingPlacer] CancelPlacement completed");
         }
 
         public void ToggleDeleteMode()
@@ -291,24 +317,80 @@ namespace GridSystem
             if (functionalAreaPreview == null) return;
             if (buildingDef.functionalAreaWidth <= 0 || buildingDef.functionalAreaHeight <= 0) return;
 
-            int faW = buildingDef.functionalAreaWidth;
-            int faH = buildingDef.functionalAreaHeight;
+            float cs = GridManager.Instance.cellSize;
 
+            // Preview parent is centered at grid cell center
+            // Functional area offsets and scales per direction
             Vector3 offset = Vector3.zero;
-            switch (currentRotation)
+            Vector3 scale = Vector3.zero;
+
+            // Only use thruster-specific hardcoded values for Thruster building
+            bool isThruster = (buildingDef.type == BuildingType.Thruster);
+
+            if (isThruster)
             {
-                case BuildDirection.East:
-                    offset = new Vector3(buildingDef.width * GridManager.Instance.cellSize, 0, 0);
-                    break;
-                case BuildDirection.West:
-                    offset = new Vector3(-faW * GridManager.Instance.cellSize, 0, 0);
-                    break;
-                case BuildDirection.North:
-                    offset = new Vector3(0, faH * GridManager.Instance.cellSize, 0);
-                    break;
-                case BuildDirection.South:
-                    offset = new Vector3(0, -buildingDef.height * GridManager.Instance.cellSize, 0);
-                    break;
+                // Thruster: 2x2 body, 2x8 exhaust area in specific directions
+                switch (currentRotation)
+                {
+                    case BuildDirection.East:
+                        offset = new Vector3(5f * cs, 0f, 0f);
+                        scale = new Vector3(8f * cs, 2f * cs, 1f);
+                        break;
+                    case BuildDirection.West:
+                        offset = new Vector3(-5f * cs, 0f, 0f);
+                        scale = new Vector3(8f * cs, 2f * cs, 1f);
+                        break;
+                    case BuildDirection.North:
+                        offset = new Vector3(0f, 5f * cs, 0f);
+                        scale = new Vector3(2f * cs, 8f * cs, 1f);
+                        break;
+                    case BuildDirection.South:
+                        offset = new Vector3(0f, -5f * cs, 0f);
+                        scale = new Vector3(2f * cs, 8f * cs, 1f);
+                        break;
+                }
+            }
+            else
+            {
+                // All other buildings: use functional area dimensions from building definition
+                // Calculate display dimensions based on rotation
+                int displayWidth = GetCurrentWidth(buildingDef);
+                int displayHeight = GetCurrentHeight(buildingDef);
+
+                // Functional area dimensions after rotation
+                int faDisplayWidth = buildingDef.functionalAreaWidth;
+                int faDisplayHeight = buildingDef.functionalAreaHeight;
+                if (currentRotation == BuildDirection.North || currentRotation == BuildDirection.South)
+                {
+                    faDisplayWidth = buildingDef.functionalAreaHeight;
+                    faDisplayHeight = buildingDef.functionalAreaWidth;
+                }
+
+                // Offset from building center to functional area center
+                // East/West: functional area extends along Y, offset is perpendicular
+                // North/South: functional area extends along X, offset is perpendicular
+                float offsetX = 0f;
+                float offsetY = 0f;
+
+                switch (currentRotation)
+                {
+                    case BuildDirection.East:
+                        // Functional area starts at the east edge of building
+                        offsetX = (displayWidth / 2f + faDisplayWidth / 2f) * cs;
+                        break;
+                    case BuildDirection.West:
+                        offsetX = -(displayWidth / 2f + faDisplayWidth / 2f) * cs;
+                        break;
+                    case BuildDirection.North:
+                        offsetY = (displayHeight / 2f + faDisplayHeight / 2f) * cs;
+                        break;
+                    case BuildDirection.South:
+                        offsetY = -(displayHeight / 2f + faDisplayHeight / 2f) * cs;
+                        break;
+                }
+
+                offset = new Vector3(offsetX, offsetY, 0f);
+                scale = new Vector3(faDisplayWidth * cs, faDisplayHeight * cs, 1f);
             }
 
             functionalAreaPreview.transform.localPosition = offset;
@@ -316,11 +398,7 @@ namespace GridSystem
             Transform faVisual = functionalAreaPreview.transform.GetChild(0);
             if (faVisual != null)
             {
-                faVisual.localScale = new Vector3(
-                    faW * GridManager.Instance.cellSize * 0.9f,
-                    faH * GridManager.Instance.cellSize * 0.9f,
-                    0.05f
-                );
+                faVisual.localScale = scale;
             }
         }
 
@@ -484,6 +562,13 @@ namespace GridSystem
             
             var buildingDef = DataConfig.GetBuilding(buildingType);
             if (buildingDef == null) return;
+
+            // 核心建筑不能被删除
+            if (buildingDef.isCoreBuilding)
+            {
+                Debug.Log($"[BuildingPlacer] Cannot remove core building: {buildingDef.name}");
+                return;
+            }
 
             PlacedBuilding placed = GridManager.Instance.GetPlacedBuildingAt(originPos);
             if (placed != null && placed.GameObject != null)

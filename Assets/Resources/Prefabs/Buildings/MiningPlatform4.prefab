@@ -94,7 +94,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6650554669644461023}
   - component: {fileID: 2224216604856513426}
-  - component: {fileID: 4293455145688650195}
+  - component: {fileID: 787558857199801580}
+  - component: {fileID: 8288675692603683390}
   m_Layer: 0
   m_Name: OreCollector
   m_TagString: Untagged
@@ -169,7 +170,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4293455145688650195
+--- !u!114 &787558857199801580
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -178,14 +179,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 1638603154921405723}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
+  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerInput: 10
+  isActive: 1
+  isPowered: 1
+  priority: 5
+  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
+  markerOffset: {x: 0, y: 0, z: -1}
+--- !u!114 &8288675692603683390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638603154921405723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b3d15a13af6f734688e96c6b2b16308, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
+  currentHealth: 100
 --- !u!1 &4253497775841271700
 GameObject:
   m_ObjectHideFlags: 0
@@ -196,9 +212,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7353408878606417965}
   - component: {fileID: 4692846855152284310}
-  - component: {fileID: 6400891018460164136}
-  - component: {fileID: 763198264240095873}
-  - component: {fileID: -6677533825589861091}
   m_Layer: 0
   m_Name: MiningPlatform4
   m_TagString: Untagged
@@ -275,57 +288,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &6400891018460164136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4253497775841271700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8010dbf694a49aa41941cc0e2d79b51c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  miningInterval: 2
-  miningAmount: 1
-  collector: {fileID: 8901914982695711384}
-  ignorePowerCheck: 0
-  enableDebug: 0
---- !u!114 &763198264240095873
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4253497775841271700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb3b7a2854af6b4a97e27f307826829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 0
-  collectionRange: 2
-  collectionInterval: 2
-  miningAmount: 1
---- !u!114 &-6677533825589861091
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4253497775841271700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41f9ede29991a3a44bbe4e2cdc6d2172, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  powerInput: 10
-  isActive: 1
-  isPowered: 1
-  powerShortageIcon: {fileID: 21300000, guid: 3f3d0aa3496d5df44acac8a51ba7ea5c, type: 3}
-  markerOffset: {x: 0, y: 0, z: -1}
 --- !u!1 &7337039863245935939
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,3 +386,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac82e21cadeb8524998391c2bef03763, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  miningAmount: 10
+  collectionWidth: 2
+  collectionHeight: 2
+  enableDebug: 0
