@@ -30,6 +30,7 @@ public class ThrusterEffectController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private bool directionInitialized = false;
     private bool useManualDirection = false;
+    private bool thrusterSoundPlaying = false;
 
     private void Awake()
     {
@@ -154,6 +155,13 @@ public class ThrusterEffectController : MonoBehaviour
                 scaleTimer = 0f;
             }
             
+            // 播放推进器音效（循环播放）
+            if (!thrusterSoundPlaying)
+            {
+                AudioManager.Instance?.PlayThruster();
+                thrusterSoundPlaying = true;
+            }
+            
             // 逐渐缩放
             scaleTimer += Time.deltaTime;
             float t = Mathf.Clamp01(scaleTimer / scaleUpDuration);
@@ -169,6 +177,13 @@ public class ThrusterEffectController : MonoBehaviour
                 spriteRenderer.enabled = false;
                 transform.localScale = minScale;
                 scaleTimer = 0f;
+            }
+            
+            // 立即停止推进器音效
+            if (thrusterSoundPlaying)
+            {
+                AudioManager.Instance?.StopThruster();
+                thrusterSoundPlaying = false;
             }
         }
     }

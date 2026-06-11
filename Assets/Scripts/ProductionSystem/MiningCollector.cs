@@ -103,6 +103,9 @@ namespace ProductionSystem
                     Debug.Log($"[MiningCollector] {name} 采集矿石：+{miningAmount}, 当前总量：{currentAmount}");
                 }
             }
+
+            // 播放采集音效
+            AudioManager.Instance?.PlayMining();
         }
 
         /// <summary>

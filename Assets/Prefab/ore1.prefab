@@ -102,5 +102,8 @@ MonoBehaviour:
   rotationSpeed: 15
   bobAmplitude: 0.15
   bobFrequency: 2
-  destroyDistance: 25
+  boundaryMin: -75
+  boundaryMax: 75
   protectedTime: 3
+  damageToBuilding: 10
+  explosionPrefab: {fileID: 5162910912013668194, guid: cf82839c411151342a7b2337bda9fb34, type: 3}

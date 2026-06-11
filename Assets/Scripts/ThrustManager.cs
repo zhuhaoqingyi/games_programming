@@ -14,6 +14,7 @@ public class ThrustManager : MonoBehaviour
     public float stopThreshold = 0.05f;          // 速度低于此值时视为停止
 
     [Header("Scene References")]
+    public Transform shipTransform;              // 飞船根物体（用于保存/加载位置）
     public Transform backgroundTransform;        // 背景图/背景容器
     // 矿石不再是容器的子物体，直接移动所有矿石实例
 
@@ -26,6 +27,9 @@ public class ThrustManager : MonoBehaviour
 
     private Vector3 worldOffset = Vector3.zero;  // 世界坐标反向偏移量
     private Vector3 lastWorldOffset = Vector3.zero;  // 上一帧的偏移量（用于计算增量）
+
+    [Header("坐标回退设置")]
+    public float wrapThreshold = 5000f;  // 坐标达到此值时回退到原点
 
     private void Awake()
     {
@@ -302,16 +306,32 @@ public class ThrustManager : MonoBehaviour
         Vector3 deltaOffset = worldOffset - lastWorldOffset;
         lastWorldOffset = worldOffset;
 
+        // 检查是否需要回退坐标
+        bool needWrap = Mathf.Abs(worldOffset.x) >= wrapThreshold || Mathf.Abs(worldOffset.y) >= wrapThreshold;
+        Vector3 wrapDelta = Vector3.zero;
+
+        if (needWrap)
+        {
+            // 计算回退量：将坐标拉回到接近原点的位置
+            wrapDelta.x = -Mathf.Sign(worldOffset.x) * wrapThreshold;
+            wrapDelta.y = -Mathf.Sign(worldOffset.y) * wrapThreshold;
+            
+            worldOffset += wrapDelta;
+            lastWorldOffset += wrapDelta;
+            
+            Debug.Log($"[ThrustManager] 坐标回退: worldOffset=({worldOffset.x:F1}, {worldOffset.y:F1})");
+        }
+
         if (backgroundTransform != null)
         {
             backgroundTransform.position = new Vector3(worldOffset.x, worldOffset.y, backgroundTransform.position.z);
         }
 
-        // 移动场景中所有矿石，只应用增量偏移
+        // 移动场景中所有矿石，应用增量偏移 + 回退偏移
         SpaceOre[] allOres = FindObjectsOfType<SpaceOre>();
         foreach (SpaceOre ore in allOres)
         {
-            ore.transform.position += new Vector3(deltaOffset.x, deltaOffset.y, 0f);
+            ore.transform.position += new Vector3(deltaOffset.x + wrapDelta.x, deltaOffset.y + wrapDelta.y, 0f);
         }
     }
 

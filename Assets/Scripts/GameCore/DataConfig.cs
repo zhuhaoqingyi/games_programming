@@ -84,20 +84,6 @@ namespace GameCore
             basicBoard.costs.Add(new BoardCost(ResourceType.SpaceOre, 10));
             BoardDefinitions[BoardType.BasicBoard] = basicBoard;
 
-            var reinforcedBoard = new BoardDefinition(
-                BoardType.ReinforcedBoard, BuildingCategory.Board, "Reinforced Space Board", "Reinforced structure, more durable",
-                prefabPath: "Prefabs/Boards/ReinforcedBoard", iconPath: "Icons/Boards/ReinforcedBoard");
-            reinforcedBoard.costs.Add(new BoardCost(ResourceType.MetalMaterial, 10));
-            reinforcedBoard.costs.Add(new BoardCost(ResourceType.SpaceOre, 10));
-            BoardDefinitions[BoardType.ReinforcedBoard] = reinforcedBoard;
-
-            var advancedBoard = new BoardDefinition(
-                BoardType.AdvancedBoard, BuildingCategory.Board, "Advanced Space Board", "Advanced composite space board",
-                prefabPath: "Prefabs/Boards/AdvancedBoard", iconPath: "Icons/Boards/AdvancedBoard");
-            advancedBoard.costs.Add(new BoardCost(ResourceType.AdvancedPart, 5));
-            advancedBoard.costs.Add(new BoardCost(ResourceType.BasicPart, 10));
-            BoardDefinitions[BoardType.AdvancedBoard] = advancedBoard;
-
             var basicBoardBuilding = new BuildingDefinition(
                 BuildingType.BasicBoard, BuildingCategory.Board, basicBoard.name, basicBoard.description,
                 width: 1, height: 1, prefabPath: basicBoard.prefabPath, iconPath: basicBoard.iconPath,
@@ -107,26 +93,6 @@ namespace GameCore
                 basicBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
             }
             BuildingDefinitions[BuildingType.BasicBoard] = basicBoardBuilding;
-
-            var reinforcedBoardBuilding = new BuildingDefinition(
-                BuildingType.ReinforcedBoard, BuildingCategory.Board, reinforcedBoard.name, reinforcedBoard.description,
-                width: 1, height: 1, prefabPath: reinforcedBoard.prefabPath, iconPath: reinforcedBoard.iconPath,
-                isBoard: true);
-            foreach (var cost in reinforcedBoard.costs)
-            {
-                reinforcedBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
-            }
-            BuildingDefinitions[BuildingType.ReinforcedBoard] = reinforcedBoardBuilding;
-
-            var advancedBoardBuilding = new BuildingDefinition(
-                BuildingType.AdvancedBoard, BuildingCategory.Board, advancedBoard.name, advancedBoard.description,
-                width: 1, height: 1, prefabPath: advancedBoard.prefabPath, iconPath: advancedBoard.iconPath,
-                isBoard: true);
-            foreach (var cost in advancedBoard.costs)
-            {
-                advancedBoardBuilding.costs.Add(new BuildingCost(cost.resourceType, cost.amount));
-            }
-            BuildingDefinitions[BuildingType.AdvancedBoard] = advancedBoardBuilding;
         }
 
         private static void InitializeBuildings()
@@ -146,26 +112,28 @@ namespace GameCore
             miningPlatform.directionalPrefabPaths[BuildDirection.South] = "Prefabs/Buildings/MiningPlatform2";
             miningPlatform.directionalPrefabPaths[BuildDirection.West] = "Prefabs/Buildings/MiningPlatform3";
             miningPlatform.directionalPrefabPaths[BuildDirection.North] = "Prefabs/Buildings/MiningPlatform4";
+            miningPlatform.costs.Add(new BuildingCost(ResourceType.SpaceOre, 20));
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
 
             var nuclearReactor = new BuildingDefinition(
-                BuildingType.NuclearReactor, BuildingCategory.Power, "Nuclear Reactor", "Generates power by consuming ore",
+                BuildingType.NuclearReactor, BuildingCategory.Power, "Nuclear Reactor", "无需消耗，持续产生大量电力",
                 width: 3, height: 3, powerConsumption: 0, powerProduction: 50,
                 prefabPath: "Prefabs/Buildings/NuclearReactor", iconPath: "Icons/Buildings/NuclearReactor");
-            nuclearReactor.costs.Add(new BuildingCost(ResourceType.SpaceOre, 50));
+            nuclearReactor.costs.Add(new BuildingCost(ResourceType.MetalMaterial, 50));
+            nuclearReactor.costs.Add(new BuildingCost(ResourceType.BasicPart, 30));
+            nuclearReactor.costs.Add(new BuildingCost(ResourceType.AdvancedPart, 5));
             BuildingDefinitions[BuildingType.NuclearReactor] = nuclearReactor;
 
             var solarArray = new BuildingDefinition(
                 BuildingType.SolarArray, BuildingCategory.Power, "Solar Array", "Infinite clean energy",
                 width: 2, height: 1, powerConsumption: 0, powerProduction: 10,
                 prefabPath: "Prefabs/Buildings/SolarArray", iconPath: "Icons/Buildings/SolarArray");
-            solarArray.costs.Add(new BuildingCost(ResourceType.MetalMaterial, 30));
-            solarArray.costs.Add(new BuildingCost(ResourceType.BasicPart, 10));
+            solarArray.costs.Add(new BuildingCost(ResourceType.MetalMaterial, 20));
             BuildingDefinitions[BuildingType.SolarArray] = solarArray;
 
             var storageDock = new BuildingDefinition(
                 BuildingType.StorageDock, BuildingCategory.Storage, "Storage Dock", "Stores all types of resources",
-                width: 2, height: 1, powerConsumption: 2, powerProduction: 0,
+                width: 2, height: 2, powerConsumption: 2, powerProduction: 0,
                 storageCapacity: 500, prefabPath: "Prefabs/Buildings/StorageDock", iconPath: "Icons/Buildings/StorageDock");
             storageDock.costs.Add(new BuildingCost(ResourceType.SpaceOre, 30));
             BuildingDefinitions[BuildingType.StorageDock] = storageDock;

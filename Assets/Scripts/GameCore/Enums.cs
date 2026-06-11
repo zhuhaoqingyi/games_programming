@@ -21,17 +21,13 @@ namespace GameCore
         FurnaceRefinery,
         PartAssembly,
         AdvancedFactory,
-        BasicBoard,
-        ReinforcedBoard,
-        AdvancedBoard
+        BasicBoard
     }
 
     public enum BoardType
     {
         None,
-        BasicBoard,
-        ReinforcedBoard,
-        AdvancedBoard
+        BasicBoard
     }
 
     public enum BuildingCategory

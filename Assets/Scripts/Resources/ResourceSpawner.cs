@@ -18,8 +18,12 @@ namespace GameResources
         public float spawnDistance = 15f;
 
         [Header("边界范围")]
-        public float boundaryMin = -150f;       // 固定边界最小值
-        public float boundaryMax = 150f;        // 固定边界最大值
+        public float boundaryMin = -75;       // 固定边界最小值
+        public float boundaryMax = 75;        // 固定边界最大值
+
+        [Header("生成区域（层次感）")]
+        public float spawnZoneMin = 50f;      // 矿石生成区域最小值（距中心距离）
+        public float spawnZoneMax = 75f;      // 矿石生成区域最大值（距中心距离）
 
         [Header("生成方向权重")]
         public float topWeight = 0.25f;
@@ -176,24 +180,24 @@ namespace GameResources
                 case SpawnSide.Top:
                     return new Vector3(
                         Mathf.Clamp(Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance), boundaryMin, boundaryMax),
-                        boundaryMax,
+                        Random.Range(spawnZoneMin, spawnZoneMax),
                         0
                     );
                 case SpawnSide.Bottom:
                     return new Vector3(
                         Mathf.Clamp(Random.Range(-screenWidth - spawnDistance, screenWidth + spawnDistance), boundaryMin, boundaryMax),
-                        boundaryMin,
+                        Random.Range(-spawnZoneMax, -spawnZoneMin),
                         0
                     );
                 case SpawnSide.Left:
                     return new Vector3(
-                        boundaryMin,
+                        Random.Range(-spawnZoneMax, -spawnZoneMin),
                         Mathf.Clamp(Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance), boundaryMin, boundaryMax),
                         0
                     );
                 default:
                     return new Vector3(
-                        boundaryMax,
+                        Random.Range(spawnZoneMin, spawnZoneMax),
                         Mathf.Clamp(Random.Range(-screenHeight - spawnDistance, screenHeight + spawnDistance), boundaryMin, boundaryMax),
                         0
                     );

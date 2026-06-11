@@ -152,6 +152,20 @@ namespace GridSystem
             return true;
         }
 
+        /// <summary>
+        /// 清除所有建筑（用于加载存档）
+        /// </summary>
+        public void ClearAllBuildings()
+        {
+            foreach (var kvp in placedBuildings)
+            {
+                kvp.Value.Destroy();
+            }
+            placedBuildings.Clear();
+            grid.Clear();
+            Debug.Log("[GridManager] 所有建筑已清除");
+        }
+
         public bool CanPlaceBuilding(GridPosition position, BuildingType buildingType)
         {
             var buildingDef = DataConfig.GetBuilding(buildingType);
@@ -374,8 +388,6 @@ namespace GridSystem
             switch (buildingType)
             {
                 case BuildingType.BasicBoard: return BoardType.BasicBoard;
-                case BuildingType.ReinforcedBoard: return BoardType.ReinforcedBoard;
-                case BuildingType.AdvancedBoard: return BoardType.AdvancedBoard;
                 default: return BoardType.None;
             }
         }
@@ -451,8 +463,6 @@ namespace GridSystem
             switch (boardType)
             {
                 case BoardType.BasicBoard: return BuildingType.BasicBoard;
-                case BoardType.ReinforcedBoard: return BuildingType.ReinforcedBoard;
-                case BoardType.AdvancedBoard: return BuildingType.AdvancedBoard;
                 default: return BuildingType.None;
             }
         }
@@ -632,7 +642,12 @@ namespace GridSystem
 
         public bool PlaceBuildingWithDirection(GridPosition position, BuildingType buildingType, BuildDirection direction)
         {
-            if (!CanPlaceBuildingWithDirection(position, buildingType, direction))
+            return PlaceBuildingWithDirection(position, buildingType, direction, validate: true);
+        }
+
+        public bool PlaceBuildingWithDirection(GridPosition position, BuildingType buildingType, BuildDirection direction, bool validate)
+        {
+            if (validate && !CanPlaceBuildingWithDirection(position, buildingType, direction))
                 return false;
 
             var buildingDef = DataConfig.GetBuilding(buildingType);

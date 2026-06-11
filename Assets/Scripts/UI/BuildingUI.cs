@@ -51,7 +51,7 @@ namespace UI
 
         private BuildingIconButton selectedButton;
         private BuildingCategoryPanel currentCategory;
-        private bool isUIVisible = true;
+        private bool isUIVisible = false;
         private bool isBuildingMode = false;
 
         // Tooltip 当前所属的按钮（防止延迟协程错误隐藏后续按钮的tooltip）
@@ -76,6 +76,9 @@ namespace UI
             InitializePanels();
             HideBuildingTooltip();
             InitializeDeleteModeButton();
+            
+            // 默认隐藏建筑UI
+            HideUI();
             
             if (buildingPlacer != null)
             {
@@ -162,7 +165,7 @@ namespace UI
 
             if (Input.GetKeyDown(deleteModeToggleKey))
             {
-                ToggleDeleteMode();
+                // 删除模式仅通过UI按钮切换，快捷键已禁用
             }
         }
 

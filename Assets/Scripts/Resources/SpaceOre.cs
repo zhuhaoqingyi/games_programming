@@ -19,6 +19,10 @@ namespace GameResources
         [Header("伤害设置")]
         public int damageToBuilding = 1;
 
+        [Header("爆炸效果")]
+        public GameObject explosionPrefab;
+        private GameObject explosionInstance;
+
         private Vector3 moveDirection;
         private float currentSpeed;
         private float time;
@@ -75,9 +79,22 @@ namespace GameResources
             if (building != null)
             {
                 building.TakeDamage(damageToBuilding);
+                AudioManager.Instance?.PlayOreCollision();
+                SpawnExplosion();
                 Collect();
                 return;
             }
+        }
+
+        private void SpawnExplosion()
+        {
+            if (explosionPrefab == null) return;
+
+            explosionInstance = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            explosionInstance.transform.SetParent(null);
+            
+            // 1秒后销毁爆炸效果
+            Destroy(explosionInstance, 1f);
         }
 
         public void Initialize(Vector3 spawnDirection)

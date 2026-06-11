@@ -180,6 +180,19 @@ namespace GridSystem
             {
                 CancelPlacement();
                 DeselectPlacedBuilding();
+                // 隐藏建筑UI（与放置预览一致）
+                if (UI.BuildingUI.Instance != null)
+                {
+                    UI.BuildingUI.Instance.HideUI();
+                }
+            }
+            else
+            {
+                // 退出删除模式时恢复建筑UI
+                if (UI.BuildingUI.Instance != null)
+                {
+                    UI.BuildingUI.Instance.ShowUI();
+                }
             }
             
             OnDeleteModeChanged?.Invoke(isDeleteMode);
@@ -509,6 +522,7 @@ namespace GridSystem
                 bool placed = GridManager.Instance.PlaceBuildingWithDirection(gridPos, selectedBuilding, currentRotation);
                 if (placed)
                 {
+                    AudioManager.Instance?.PlayBuildingPlace();
                     OnBuildingPlaced?.Invoke(gridPos, selectedBuilding);
                 }
             }

@@ -113,27 +113,45 @@ namespace LogisticsSystem
 
         public bool AddResource(ResourceType type, int amount)
         {
+            return AddResource(type, amount, checkCapacity: true);
+        }
+
+        public bool AddResource(ResourceType type, int amount, bool checkCapacity)
+        {
             if (amount <= 0) return false;
 
-            int totalItems = GetTotalItemCount();
-            if (totalCapacity > 0 && totalItems >= totalCapacity) return false;
-
-            int capacity = GetResourceCapacity(type);
-            int current = GetResourceAmount(type);
-            int canAdd = Mathf.Min(amount, capacity - current);
-            if (totalCapacity > 0)
+            if (checkCapacity)
             {
-                canAdd = Mathf.Min(canAdd, totalCapacity - totalItems);
+                int totalItems = GetTotalItemCount();
+                if (totalCapacity > 0 && totalItems >= totalCapacity) return false;
+
+                int capacity = GetResourceCapacity(type);
+                int current = GetResourceAmount(type);
+                int canAdd = Mathf.Min(amount, capacity - current);
+                if (totalCapacity > 0)
+                {
+                    canAdd = Mathf.Min(canAdd, totalCapacity - totalItems);
+                }
+
+                if (canAdd <= 0) return false;
+
+                if (!globalInventory.ContainsKey(type))
+                {
+                    globalInventory[type] = 0;
+                }
+                globalInventory[type] += canAdd;
+                return true;
             }
-
-            if (canAdd <= 0) return false;
-
-            if (!globalInventory.ContainsKey(type))
+            else
             {
-                globalInventory[type] = 0;
+                // 不检查容量，直接添加（用于初始资源设置）
+                if (!globalInventory.ContainsKey(type))
+                {
+                    globalInventory[type] = 0;
+                }
+                globalInventory[type] += amount;
+                return true;
             }
-            globalInventory[type] += canAdd;
-            return true;
         }
 
         public bool RemoveResource(ResourceType type, int amount)

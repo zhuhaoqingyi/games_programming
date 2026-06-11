@@ -1,6 +1,8 @@
 using UnityEngine;
+using System.Collections.Generic;
 using GameCore;
 using GridSystem;
+using LogisticsSystem;
 
 namespace ProductionSystem
 {
@@ -74,6 +76,43 @@ namespace ProductionSystem
         protected virtual void DestroyBuilding()
         {
             Debug.Log($"[BuildingBase] {name} 被摧毁");
+            
+            // 从 GridManager 中移除建筑记录，并清理相关资源
+            BuildingComponent buildingComp = GetComponent<BuildingComponent>();
+            if (buildingComp != null && GridManager.Instance != null)
+            {
+                var buildingDef = DataConfig.GetBuilding(buildingComp.Type);
+                
+                // 清理容器注册
+                ContainerComponent container = GetComponentInChildren<ContainerComponent>();
+                if (container != null && GameManager.Instance != null)
+                {
+                    Dictionary<ResourceType, int> capacities = new Dictionary<ResourceType, int>();
+                    foreach (var rc in container.resourceCapacities)
+                    {
+                        capacities[rc.resourceType] = rc.capacity;
+                    }
+                    GameManager.Instance.RemoveContainer(capacities, container.GetTotalCapacity());
+                    Debug.Log($"[BuildingBase] {name} 容器已注销");
+                }
+                
+                // 清理存储容量
+                if (buildingDef != null && buildingDef.storageCapacity > 0 && GameManager.Instance != null)
+                {
+                    GameManager.Instance.RemoveStorageCapacity(buildingDef.storageCapacity);
+                    Debug.Log($"[BuildingBase] {name} 存储容量 -{buildingDef.storageCapacity}");
+                }
+                
+                // 从网格中移除建筑
+                GridManager.Instance.RemoveBuilding(buildingComp.GridPosition);
+                
+                // 强制执行容量限制
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.EnforceCapacityLimits();
+                }
+            }
+            
             Destroy(gameObject);
         }
 
