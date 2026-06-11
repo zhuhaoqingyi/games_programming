@@ -130,24 +130,51 @@ public class SaveSystem : MonoBehaviour
             }
         }
 
-        // 2. 保存建筑
+        // 2. 保存太空板（从网格格子中收集，避免 placedBuildings 被非板类建筑覆盖）
         if (GridManager.Instance != null)
         {
+            var boardCells = GridManager.Instance.GetAllBoardCells();
             data.buildings = new List<BuildingEntry>();
-            foreach (var kvp in GridManager.Instance.GetAllPlacedBuildings())
+            
+            // 先保存所有板类建筑（直接从 BoardType 转换，避免 GetBuildingAt 错误返回非板类）
+            foreach (var kvp in boardCells)
             {
                 GridPosition pos = kvp.Key;
-                PlacedBuilding placed = kvp.Value;
-                if (placed != null)
+                BuildingType bType = kvp.Value switch
+                {
+                    BoardType.BasicBoard => BuildingType.BasicBoard,
+                    _ => BuildingType.None
+                };
+                if (bType != BuildingType.None)
                 {
                     data.buildings.Add(new BuildingEntry
                     {
                         x = pos.x,
                         y = pos.y,
-                        type = placed.BuildingType,
-                        direction = placed.Direction
+                        type = bType,
+                        direction = BuildDirection.East
                     });
                 }
+            }
+
+            // 再保存非板类建筑（从 placedBuildings 收集）
+            foreach (var kvp in GridManager.Instance.GetAllPlacedBuildings())
+            {
+                GridPosition pos = kvp.Key;
+                PlacedBuilding placed = kvp.Value;
+                if (placed == null) continue;
+                
+                // 跳过板类（已从 grid 保存）
+                var def = DataConfig.GetBuilding(placed.BuildingType);
+                if (def != null && def.isBoard) continue;
+
+                data.buildings.Add(new BuildingEntry
+                {
+                    x = pos.x,
+                    y = pos.y,
+                    type = placed.BuildingType,
+                    direction = placed.Direction
+                });
             }
         }
 

@@ -467,6 +467,22 @@ namespace GridSystem
             }
         }
 
+        /// <summary>
+        /// 获取所有有太空板的格子位置和板类型（用于存档）
+        /// </summary>
+        public Dictionary<GridPosition, BoardType> GetAllBoardCells()
+        {
+            var result = new Dictionary<GridPosition, BoardType>();
+            foreach (var kvp in grid)
+            {
+                if (kvp.Value.HasBoard)
+                {
+                    result[kvp.Key] = kvp.Value.BoardType;
+                }
+            }
+            return result;
+        }
+
         public GridPosition GetBuildingOrigin(GridPosition pos)
         {
             GridCell cell = GetCell(pos);

@@ -116,7 +116,7 @@ namespace GameCore
             BuildingDefinitions[BuildingType.MiningPlatform] = miningPlatform;
 
             var nuclearReactor = new BuildingDefinition(
-                BuildingType.NuclearReactor, BuildingCategory.Power, "Nuclear Reactor", "无需消耗，持续产生大量电力",
+                BuildingType.NuclearReactor, BuildingCategory.Power, "Nuclear Reactor", "Generates massive power with no resource consumption",
                 width: 3, height: 3, powerConsumption: 0, powerProduction: 50,
                 prefabPath: "Prefabs/Buildings/NuclearReactor", iconPath: "Icons/Buildings/NuclearReactor");
             nuclearReactor.costs.Add(new BuildingCost(ResourceType.MetalMaterial, 50));
